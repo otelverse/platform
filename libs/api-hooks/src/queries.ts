@@ -69,3 +69,47 @@ export const LOGS_QUERY = `
     }
   }
 `
+
+export const UQL_QUERY = `
+  query UQL($query: String!) {
+    uql(query: $query) {
+      ... on TraceList {
+        traces {
+          traceId
+          spans {
+            spanId
+            parentSpanId
+            operationName
+            serviceName
+            startTime
+            duration
+            statusCode
+            attributes {
+              key
+              value
+            }
+            events {
+              name
+              timestamp
+              attributes {
+                key
+                value
+              }
+            }
+          }
+        }
+      }
+      ... on LogList {
+        logs {
+          timestamp
+          severity
+          body
+          attributes {
+            key
+            value
+          }
+        }
+      }
+    }
+  }
+`
