@@ -4,3 +4,21 @@ filegroup(
     name = "all",
     srcs = glob(["**"]),
 )
+
+sh_test(
+    name = "unit_test",
+    srcs = ["jest.config.js"],
+    args = [
+        "npx",
+        "jest",
+        "--config",
+        "jest.config.js",
+        "--ci",
+    ],
+    data = glob([
+        "src/**",
+        "jest.config.js",
+        "package.json",
+        "tsconfig.json",
+    ]),
+)
