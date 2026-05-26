@@ -96,6 +96,55 @@ query {
 - **UQL Engine** (`uql/`): Unified Query Language parser and ClickHouse SQL translator
 - **API Hooks** (`libs/api-hooks/`): TanStack Query hooks for GraphQL including `useUQL`
 
+## Pipeline Builder
+
+The Pipeline Builder is a visual editor for OTel Collector pipelines, accessible at `/pipelines` in the frontend.
+
+### Features
+
+- **Visual Canvas**: Drag-and-drop editor using React Flow with custom nodes for receivers, processors, and exporters
+- **Node Palette**: Available node types:
+  - `RECEIVER_OTLP` - OTLP gRPC receiver
+  - `PROCESSOR_BATCH` - Batch processor
+  - `PROCESSOR_MEMORY_LIMITER` - Memory limiting processor
+  - `PROCESSOR_TAIL_SAMPLING` - Tail-based sampling processor
+  - `EXPORTER_LOGGING` - Logging exporter
+  - `EXPORTER_OTLP` - OTLP exporter
+- **Properties Panel**: Edit node properties (endpoint, verbosity, etc.)
+- **Validation**: Backend validates pipeline structure (receiver/exporter requirements, connection rules, required fields)
+- **YAML Export**: Generate valid OTel Collector `config.yaml` for download
+- **One-Click Deploy**: Deploy to local Docker as a running collector container
+
+### GraphQL API
+
+```graphql
+# List all pipelines
+query { pipelines { id name nodes { id type label properties position { x y } } edges { id source target } } }
+
+# Get single pipeline
+query { pipeline(id: "default") { id name nodes { id type label } } }
+
+# Create pipeline
+mutation { pipelineCreate(input: { name: "My Pipeline", nodes: [], edges: [] }) { id name } }
+
+# Validate pipeline
+query { pipelineValidate(id: "default") { valid errors } }
+
+# Export as YAML
+query { pipelineExportYAML(id: "default") }
+
+# Deploy to Docker
+mutation { pipelineDeploy(id: "default") { containerId status } }
+```
+
+### Validation Rules
+
+- Pipeline must have at least one receiver and one exporter
+- All nodes must be connected by edges (no orphans)
+- Receivers cannot have incoming edges
+- Exporters cannot have outgoing edges
+- OTLP receiver requires `endpoint` property
+
 ## Local Development
 
 ### Prerequisites
@@ -210,12 +259,21 @@ packages/unified-platform/
 │   └── 003_create_materialized_views.sql
 ├── scripts/
 │   └── generate-traces.sh
+├── pipeline/                  # Pipeline builder logic
+│   ├── store.go               # In-memory pipeline store
+│   ├── validator.go           # Pipeline validation rules
+│   ├── yaml.go                # OTel Collector YAML generation
+│   ├── deploy.go              # Docker deployment
+│   ├── pipeline_test.go
+│   └── yaml_test.go
 ├── uql/                      # UQL parser & translator
 │   ├── parser.go
 │   ├── translator.go
 │   ├── parser_test.go
 │   └── translator_test.go
 ├── web/                      # React frontend
+│   ├── cypress/              # E2E tests
+│   └── src/pages/PipelineBuilder/  # Pipeline builder UI
 ├── BUILD.bazel               # Bazel build
 ├── main.go                   # Entry point
 ├── migration.go              # Migration runner
@@ -224,4 +282,6 @@ packages/unified-platform/
 ├── go.mod
 ├── go.sum
 ├── uql_integration_test.go   # UQL integration tests
+├── pipeline_integration_test.go  # Pipeline integration tests
+└── pipeline_resolver_test.go     # Pipeline resolver tests
 ```
