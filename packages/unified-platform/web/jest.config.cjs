@@ -6,7 +6,10 @@ module.exports = {
   transform: {
     '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.json' }],
   },
+  setupFilesAfterEnv: ['@testing-library/jest-dom'],
   moduleNameMapper: {
     '\\.(css|less|scss)$': '<rootDir>/src/__mocks__/styleMock.js',
+    '^@otelverse/ui-kit$': '<rootDir>/../../../libs/ui-kit/src/index.ts',
+    '^@otelverse/api-hooks$': '<rootDir>/../../../libs/api-hooks/src/index.ts',
   },
 }
