@@ -15,6 +15,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:bundle": "node scripts/build.mjs",
     "test": "jest --passWithNoTests --config jest.config.js",
     "lint": "biome check --apply src/",
     "format": "biome format --write src/"
@@ -27,6 +28,7 @@
     "react": "^18.0.0"
   },
   "devDependencies": {
+    "esbuild": "^0.25.0",
     "@testing-library/jest-dom": "^6.4.0",
     "@testing-library/react": "^16.0.0",
     "@types/jest": "^29.5.12",
