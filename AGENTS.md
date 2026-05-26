@@ -1,0 +1,13 @@
+# OTelVerse Agent Rules
+- Always read this file at session start.
+- Repo branch: main (prod), develop (integration). You will work on a feature branch named `feature/session-XX-short-desc` branched from latest `develop`. Never commit to main or develop directly.
+- Pull the latest `develop` before branching.
+- Reuse existing code. Check `//libs/ui-kit` for UI components (future), `//libs/edge-common` (future), `//proto` for shared protos before creating new ones.
+- All UI must use components from `//libs/ui-kit`. If a needed component doesn't exist, add it there with Storybook stories and unit tests. Then use it in the product.
+- Follow design tokens (colors, spacing) from `//libs/ui-kit/design-tokens`. No hardcoded colors.
+- Every feature must have tests: unit tests (Go: testify, TS: Jest), integration tests (testcontainers-go, kind), E2E for UI (Cypress). Tests are in the same package directory.
+- Code style: Go (gofumpt), TypeScript (ESLint, Prettier), Python (Black). Run `bazel run //tools:lint` before committing.
+- Commit often with conventional commits. No giant commits.
+- After finishing a session task, run all tests (`bazel test //...`), fix any failures, then open a PR to `develop`. Merge only if CI passes.
+- Update `VERSION` file and create a git tag for the session milestone if applicable.
+- Documentation: update `README.md` and relevant product `README.md` when adding new features.
