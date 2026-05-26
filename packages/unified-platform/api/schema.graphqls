@@ -2,6 +2,17 @@ type Query {
   traces(serviceName: String, operationName: String, startTime: DateTime!, endTime: DateTime!, limit: Int = 100): [Trace!]!
   trace(id: String!): Trace
   logs(severity: String, message: String, startTime: DateTime!, endTime: DateTime!, limit: Int = 100): [Log!]!
+  uql(query: String!): UQLResult!
+}
+
+union UQLResult = TraceList | LogList
+
+type TraceList {
+  traces: [Trace!]!
+}
+
+type LogList {
+  logs: [Log!]!
 }
 
 scalar DateTime

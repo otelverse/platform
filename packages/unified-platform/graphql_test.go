@@ -26,12 +26,16 @@ func TestGraphQLSchemaPresence(t *testing.T) {
   traces(serviceName: String, operationName: String, startTime: DateTime!, endTime: DateTime!, limit: Int = 100): [Trace!]!
   trace(id: String!): Trace
   logs(severity: String, message: String, startTime: DateTime!, endTime: DateTime!, limit: Int = 100): [Log!]!
+  uql(query: String!): UQLResult!
 }`
 	if !strings.Contains(schema, "traces(") {
 		t.Fatal("schema should contain traces query")
 	}
 	if !strings.Contains(schema, "logs(") {
 		t.Fatal("schema should contain logs query")
+	}
+	if !strings.Contains(schema, "uql(") {
+		t.Fatal("schema should contain uql query")
 	}
 }
 

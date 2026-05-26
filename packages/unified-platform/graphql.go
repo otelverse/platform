@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/otelverse/unified-platform/uql"
 )
 
 type GraphQLResolver struct {
@@ -72,6 +74,9 @@ func (r *GraphQLResolver) executeQuery(ctx context.Context, query string, vars m
 	}
 	if strings.Contains(query, "query logs") || strings.Contains(query, "query { logs") {
 		return r.resolveLogs(ctx, vars)
+	}
+	if strings.Contains(query, "query uql") || strings.Contains(query, "query { uql") {
+		return r.resolveUQL(ctx, vars)
 	}
 
 	return nil, fmt.Errorf("unsupported query")
@@ -291,6 +296,116 @@ func (r *GraphQLResolver) resolveLogs(ctx context.Context, vars map[string]inter
 	}
 
 	return map[string]interface{}{"logs": logs}, nil
+}
+
+func (r *GraphQLResolver) resolveUQL(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	queryStr, _ := vars["query"].(string)
+	if queryStr == "" {
+		return nil, fmt.Errorf("uql query is required")
+	}
+
+	parser := uql.NewParser(queryStr)
+	query, err := parser.Parse()
+	if err != nil {
+		return nil, fmt.Errorf("uql parse error: %w", err)
+	}
+
+	sqlQuery, args, err := query.ToClickhouse()
+	if err != nil {
+		return nil, fmt.Errorf("uql translation error: %w", err)
+	}
+
+	rows, err := r.db.QueryContext(ctx, sqlQuery, args...)
+	if err != nil {
+		return nil, fmt.Errorf("uql query failed: %w", err)
+	}
+	defer rows.Close()
+
+	switch query.Type {
+	case uql.QueryTypeTraces:
+		return r.uqlTraceResult(rows)
+	case uql.QueryTypeLogs:
+		return r.uqlLogResult(rows)
+	default:
+		return nil, fmt.Errorf("unknown query type")
+	}
+}
+
+func (r *GraphQLResolver) uqlTraceResult(rows *sql.Rows) (interface{}, error) {
+	type spanResult struct {
+		TraceID            string
+		SpanID             string
+		ParentSpanID       *string
+		OperationName      string
+		ServiceName        string
+		StartTime          string
+		Duration           int64
+		StatusCode         int32
+		StatusMessage      *string
+		Attributes         *string
+		ResourceAttributes *string
+	}
+
+	var spans []spanResult
+	for rows.Next() {
+		var s spanResult
+		if err := rows.Scan(&s.TraceID, &s.SpanID, &s.ParentSpanID, &s.OperationName,
+			&s.ServiceName, &s.StartTime, &s.Duration, &s.StatusCode,
+			&s.StatusMessage, &s.Attributes, &s.ResourceAttributes); err != nil {
+			return nil, fmt.Errorf("scan failed: %w", err)
+		}
+		spans = append(spans, s)
+	}
+
+	traceMap := make(map[string]map[string]interface{})
+	for _, s := range spans {
+		traceObj, ok := traceMap[s.TraceID]
+		if !ok {
+			traceObj = map[string]interface{}{
+				"traceId": s.TraceID,
+				"spans":   []interface{}{},
+			}
+			traceMap[s.TraceID] = traceObj
+		}
+		span := map[string]interface{}{
+			"spanId":        s.SpanID,
+			"parentSpanId":  s.ParentSpanID,
+			"operationName": s.OperationName,
+			"serviceName":   s.ServiceName,
+			"startTime":     s.StartTime,
+			"duration":      s.Duration,
+			"statusCode":    s.StatusCode,
+			"attributes":    parseAttributes(s.Attributes),
+			"events":        []interface{}{},
+		}
+		traceObj["spans"] = append(traceObj["spans"].([]interface{}), span)
+	}
+
+	traces := make([]interface{}, 0, len(traceMap))
+	for _, t := range traceMap {
+		traces = append(traces, t)
+	}
+
+	return map[string]interface{}{"uql": map[string]interface{}{"traces": traces}}, nil
+}
+
+func (r *GraphQLResolver) uqlLogResult(rows *sql.Rows) (interface{}, error) {
+	var logs []interface{}
+	for rows.Next() {
+		var timestamp, severity, body string
+		var attrs *string
+		if err := rows.Scan(&timestamp, &severity, &body, &attrs); err != nil {
+			return nil, fmt.Errorf("scan failed: %w", err)
+		}
+		logs = append(logs, map[string]interface{}{
+			"timestamp":  timestamp,
+			"severity":   severity,
+			"body":       body,
+			"attributes": parseAttributes(attrs),
+		})
+	}
+
+	return map[string]interface{}{"uql": map[string]interface{}{"logs": logs}}, nil
 }
 
 func parseAttributes(attrs *string) []interface{} {
