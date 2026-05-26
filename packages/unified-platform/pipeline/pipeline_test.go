@@ -122,13 +122,190 @@ func TestValidateEmptyPipeline(t *testing.T) {
 	}
 }
 
+func TestValidateNoReceiver(t *testing.T) {
+	p := &Pipeline{
+		ID:   "test",
+		Name: "No Receiver",
+		Nodes: []PipelineNode{
+			{ID: "n1", Type: NodeTypeProcessorBatch, Label: "Batch"},
+			{ID: "n2", Type: NodeTypeExporterLogging, Label: "Logging"},
+		},
+		Edges: []PipelineEdge{
+			{ID: "e1", Source: "n1", Target: "n2"},
+		},
+	}
+	valid, errors := Validate(p)
+	if valid {
+		t.Fatal("expected pipeline without receiver to be invalid")
+	}
+	hasError := false
+	for _, e := range errors {
+		if e == "pipeline must have at least one receiver node" {
+			hasError = true
+			break
+		}
+	}
+	if !hasError {
+		t.Fatal("expected 'missing receiver' error")
+	}
+}
+
+func TestValidateNoExporter(t *testing.T) {
+	p := &Pipeline{
+		ID:   "test",
+		Name: "No Exporter",
+		Nodes: []PipelineNode{
+			{ID: "n1", Type: NodeTypeReceiverOTLP, Label: "OTLP"},
+			{ID: "n2", Type: NodeTypeProcessorBatch, Label: "Batch"},
+		},
+		Edges: []PipelineEdge{
+			{ID: "e1", Source: "n1", Target: "n2"},
+		},
+	}
+	valid, errors := Validate(p)
+	if valid {
+		t.Fatal("expected pipeline without exporter to be invalid")
+	}
+	hasError := false
+	for _, e := range errors {
+		if e == "pipeline must have at least one exporter node" {
+			hasError = true
+			break
+		}
+	}
+	if !hasError {
+		t.Fatal("expected 'missing exporter' error")
+	}
+}
+
+func TestValidateOrphanNode(t *testing.T) {
+	p := &Pipeline{
+		ID:   "test",
+		Name: "Orphan",
+		Nodes: []PipelineNode{
+			{ID: "n1", Type: NodeTypeReceiverOTLP, Label: "OTLP", Properties: map[string]interface{}{"endpoint": ":4317"}},
+			{ID: "n2", Type: NodeTypeExporterLogging, Label: "Logging"},
+			{ID: "n3", Type: NodeTypeProcessorBatch, Label: "Orphan Batch"},
+		},
+		Edges: []PipelineEdge{
+			{ID: "e1", Source: "n1", Target: "n2"},
+		},
+	}
+	valid, errors := Validate(p)
+	if valid {
+		t.Fatal("expected pipeline with orphan to be invalid")
+	}
+	hasError := false
+	for _, e := range errors {
+		if e == "orphan node not connected by any edge: n3" {
+			hasError = true
+			break
+		}
+	}
+	if !hasError {
+		t.Fatal("expected 'orphan node' error")
+	}
+}
+
+func TestValidateReceiverEndpointProperty(t *testing.T) {
+	p := &Pipeline{
+		ID:   "test",
+		Name: "Missing Endpoint",
+		Nodes: []PipelineNode{
+			{ID: "n1", Type: NodeTypeReceiverOTLP, Label: "OTLP", Properties: nil},
+			{ID: "n2", Type: NodeTypeExporterLogging, Label: "Logging"},
+		},
+		Edges: []PipelineEdge{
+			{ID: "e1", Source: "n1", Target: "n2"},
+		},
+	}
+	valid, _ := Validate(p)
+	if valid {
+		t.Fatal("expected pipeline with missing endpoint to be invalid")
+	}
+}
+
+func TestValidateInvalidEdgeSource(t *testing.T) {
+	p := &Pipeline{
+		ID:   "test",
+		Name: "Bad Edge",
+		Nodes: []PipelineNode{
+			{ID: "n1", Type: NodeTypeReceiverOTLP, Label: "OTLP", Properties: map[string]interface{}{"endpoint": ":4317"}},
+			{ID: "n2", Type: NodeTypeExporterLogging, Label: "Logging"},
+		},
+		Edges: []PipelineEdge{
+			{ID: "e1", Source: "nonexistent", Target: "n2"},
+		},
+	}
+	valid, _ := Validate(p)
+	if valid {
+		t.Fatal("expected pipeline with invalid edge source to be invalid")
+	}
+}
+
+func TestValidateReceiverNoIncoming(t *testing.T) {
+	p := &Pipeline{
+		ID:   "test",
+		Name: "Receiver Incoming",
+		Nodes: []PipelineNode{
+			{ID: "n1", Type: NodeTypeReceiverOTLP, Label: "OTLP", Properties: map[string]interface{}{"endpoint": ":4317"}},
+			{ID: "n2", Type: NodeTypeProcessorBatch, Label: "Batch"},
+		},
+		Edges: []PipelineEdge{
+			{ID: "e1", Source: "n2", Target: "n1"},
+		},
+	}
+	valid, errors := Validate(p)
+	if valid {
+		t.Fatal("expected pipeline with receiver as target to be invalid")
+	}
+	hasReceiverTargetError := false
+	hasReceiverIncomingError := false
+	for _, e := range errors {
+		if e == "receiver cannot be a target of an edge: n1" {
+			hasReceiverTargetError = true
+		}
+		if e == "receiver node should not have incoming edges: n1" {
+			hasReceiverIncomingError = true
+		}
+	}
+	if !hasReceiverTargetError && !hasReceiverIncomingError {
+		t.Fatal("expected receiver target/incoming edge error")
+	}
+}
+
+func TestValidateFullPipelineWithProcessors(t *testing.T) {
+	p := &Pipeline{
+		ID:   "test",
+		Name: "Full",
+		Nodes: []PipelineNode{
+			{ID: "n1", Type: NodeTypeReceiverOTLP, Label: "OTLP", Properties: map[string]interface{}{"endpoint": ":4317"}},
+			{ID: "n2", Type: NodeTypeProcessorBatch, Label: "Batch"},
+			{ID: "n3", Type: NodeTypeProcessorMemoryLimiter, Label: "Mem Limit"},
+			{ID: "n4", Type: NodeTypeExporterLogging, Label: "Logging"},
+		},
+		Edges: []PipelineEdge{
+			{ID: "e1", Source: "n1", Target: "n2"},
+			{ID: "e2", Source: "n2", Target: "n3"},
+			{ID: "e3", Source: "n3", Target: "n4"},
+		},
+	}
+	valid, errors := Validate(p)
+	if !valid {
+		t.Fatalf("expected valid full pipeline, got errors: %v", errors)
+	}
+}
+
 func TestValidateValidPipeline(t *testing.T) {
 	p := &Pipeline{
 		ID:   "test",
 		Name: "Valid",
 		Nodes: []PipelineNode{
-			{ID: "n1", Type: NodeTypeReceiverOTLP, Label: "OTLP"},
+			{ID: "n1", Type: NodeTypeReceiverOTLP, Label: "OTLP", Properties: map[string]interface{}{"endpoint": ":4317"}},
 			{ID: "n2", Type: NodeTypeExporterLogging, Label: "Logging"},
+		},
+		Edges: []PipelineEdge{
+			{ID: "e1", Source: "n1", Target: "n2"},
 		},
 	}
 	valid, errors := Validate(p)
