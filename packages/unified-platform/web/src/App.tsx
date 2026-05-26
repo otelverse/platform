@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, Link } from 'react-router-dom'
 import { Layout } from '@otelverse/ui-kit'
 import TraceListPage from './pages/TraceListPage'
 import TraceDetailPage from './pages/TraceDetailPage'
+import PipelineBuilderPage from './pages/PipelineBuilder/PipelineBuilderPage'
 
 function SidebarNav() {
   return (
@@ -17,6 +18,9 @@ function SidebarNav() {
         <li className="mb-2">
           <Link to="/metrics" className="text-blue-600 hover:underline">Metrics</Link>
         </li>
+        <li className="mb-2">
+          <Link to="/pipelines" className="text-blue-600 hover:underline">Pipelines</Link>
+        </li>
       </ul>
     </nav>
   )
@@ -31,6 +35,7 @@ export default function App() {
         <Route path="/traces/:id" element={<TraceDetailPage />} />
         <Route path="/logs" element={<div>Logs page coming soon</div>} />
         <Route path="/metrics" element={<div>Metrics page coming soon</div>} />
+        <Route path="/pipelines" element={<PipelineBuilderPage />} />
       </Routes>
     </Layout>
   )
