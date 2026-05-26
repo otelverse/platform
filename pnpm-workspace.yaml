@@ -2,6 +2,7 @@ packages:
   - 'libs/*'
   - 'packages/*/web'
   - 'packages/*'
+  - 'packages/frontend-wrapper/*'
 allowBuilds:
   '@bundled-es-modules/glob': set this to true or false
   esbuild: set this to true or false

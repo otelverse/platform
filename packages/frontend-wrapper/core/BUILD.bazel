@@ -4,3 +4,14 @@ filegroup(
     name = "all",
     srcs = glob(["**"]),
 )
+
+sh_test(
+    name = "unit_test",
+    srcs = ["run_tests.sh"],
+    data = glob([
+        "src/**/*.ts",
+        "*.json",
+        "*.js",
+        "jest.config.js",
+    ], allow_empty = True),
+)

@@ -1,0 +1,39 @@
+{
+  "name": "@otelverse/react",
+  "version": "0.5.0-dev",
+  "description": "React wrapper for @otelverse/web - OTelVerse frontend instrumentation",
+  "private": true,
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "jest --passWithNoTests --config jest.config.js",
+    "lint": "biome check --apply src/",
+    "format": "biome format --write src/"
+  },
+  "dependencies": {
+    "@otelverse/web": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.4.0",
+    "@testing-library/react": "^16.0.0",
+    "@types/jest": "^29.5.12",
+    "@types/react": "^18.3.3",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "react": "^18.3.1",
+    "ts-jest": "^29.2.4",
+    "typescript": "^5.5.4"
+  }
+}
