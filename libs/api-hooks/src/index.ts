@@ -1,5 +1,18 @@
 export { getClient, setEndpoint } from './client'
-export { useTraces, useTrace, useLogs, useUQL } from './hooks'
+export {
+  useTraces,
+  useTrace,
+  useLogs,
+  useUQL,
+  usePipelines,
+  usePipeline,
+  useCreatePipeline,
+  useUpdatePipeline,
+  useDeletePipeline,
+  useValidatePipeline,
+  useExportPipelineYAML,
+  useDeployPipeline,
+} from './hooks'
 export type {
   Trace,
   Span,
@@ -8,4 +21,11 @@ export type {
   Event,
   TraceFilters,
   LogFilters,
+  Pipeline,
+  PipelineNode,
+  PipelineEdge,
+  Position,
+  PipelineInput,
+  ValidationResult,
+  DeployResult,
 } from './types'

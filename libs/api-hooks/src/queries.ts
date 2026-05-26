@@ -113,3 +113,103 @@ export const UQL_QUERY = `
     }
   }
 `
+
+export const GET_PIPELINES = `
+  query Pipelines {
+    pipelines {
+      id
+      name
+      nodes {
+        id
+        type
+        label
+        properties
+        position {
+          x
+          y
+        }
+      }
+      edges {
+        id
+        source
+        target
+        sourceHandle
+        targetHandle
+      }
+    }
+  }
+`
+
+export const GET_PIPELINE = `
+  query Pipeline($id: ID!) {
+    pipeline(id: $id) {
+      id
+      name
+      nodes {
+        id
+        type
+        label
+        properties
+        position {
+          x
+          y
+        }
+      }
+      edges {
+        id
+        source
+        target
+        sourceHandle
+        targetHandle
+      }
+    }
+  }
+`
+
+export const CREATE_PIPELINE = `
+  mutation CreatePipeline($input: PipelineInput!) {
+    pipelineCreate(input: $input) {
+      id
+      name
+    }
+  }
+`
+
+export const UPDATE_PIPELINE = `
+  mutation UpdatePipeline($id: ID!, $input: PipelineInput!) {
+    pipelineUpdate(id: $id, input: $input) {
+      id
+      name
+    }
+  }
+`
+
+export const DELETE_PIPELINE = `
+  mutation DeletePipeline($id: ID!) {
+    pipelineDelete(id: $id)
+  }
+`
+
+export const VALIDATE_PIPELINE = `
+  query ValidatePipeline($id: ID!) {
+    pipelineValidate(id: $id) {
+      valid
+      errors
+    }
+  }
+`
+
+export const EXPORT_PIPELINE_YAML = `
+  query ExportPipelineYAML($id: ID!) {
+    pipelineExportYAML(id: $id)
+  }
+`
+
+export const DEPLOY_PIPELINE = `
+  mutation DeployPipeline($id: ID!) {
+    pipelineDeploy(id: $id) {
+      containerId
+      status
+    }
+  }
+`
