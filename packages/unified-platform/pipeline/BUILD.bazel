@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+package(default_visibility = ["//visibility:public"])
+
+go_library(
+    name = "pipeline",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    importpath = "github.com/otelverse/unified-platform/pipeline",
+    deps = [],
+)
+
+go_test(
+    name = "pipeline_test",
+    srcs = glob(["*_test.go"]),
+    embed = [":pipeline"],
+    deps = [
+        "@com_github_stretchr_testify//assert",
+    ],
+)
+
+filegroup(
+    name = "all",
+    srcs = glob(["**"]),
+)

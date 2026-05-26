@@ -1,8 +1,95 @@
+scalar JSON
+
 type Query {
   traces(serviceName: String, operationName: String, startTime: DateTime!, endTime: DateTime!, limit: Int = 100): [Trace!]!
   trace(id: String!): Trace
   logs(severity: String, message: String, startTime: DateTime!, endTime: DateTime!, limit: Int = 100): [Log!]!
   uql(query: String!): UQLResult!
+  pipelines: [Pipeline!]!
+  pipeline(id: ID!): Pipeline
+  pipelineValidate(id: ID!): ValidationResult!
+  pipelineExportYAML(id: ID!): String!
+}
+
+type Mutation {
+  pipelineCreate(input: PipelineInput!): Pipeline!
+  pipelineUpdate(id: ID!, input: PipelineInput!): Pipeline!
+  pipelineDelete(id: ID!): Boolean!
+  pipelineDeploy(id: ID!): DeployResult!
+}
+
+type Pipeline {
+  id: ID!
+  name: String!
+  nodes: [PipelineNode!]!
+  edges: [PipelineEdge!]!
+}
+
+type PipelineNode {
+  id: ID!
+  type: NodeType!
+  label: String!
+  properties: JSON!
+  position: Position!
+}
+
+type Position {
+  x: Float!
+  y: Float!
+}
+
+type PipelineEdge {
+  id: ID!
+  source: ID!
+  target: ID!
+  sourceHandle: String
+  targetHandle: String
+}
+
+enum NodeType {
+  RECEIVER_OTLP
+  PROCESSOR_BATCH
+  PROCESSOR_MEMORY_LIMITER
+  PROCESSOR_TAIL_SAMPLING
+  EXPORTER_LOGGING
+  EXPORTER_OTLP
+}
+
+input PipelineInput {
+  name: String!
+  nodes: [PipelineNodeInput!]!
+  edges: [PipelineEdgeInput!]!
+}
+
+input PipelineNodeInput {
+  id: ID!
+  type: NodeType!
+  label: String!
+  properties: JSON!
+  position: PositionInput!
+}
+
+input PositionInput {
+  x: Float!
+  y: Float!
+}
+
+input PipelineEdgeInput {
+  id: ID!
+  source: ID!
+  target: ID!
+  sourceHandle: String
+  targetHandle: String
+}
+
+type ValidationResult {
+  valid: Boolean!
+  errors: [String!]!
+}
+
+type DeployResult {
+  containerId: String!
+  status: String!
 }
 
 union UQLResult = TraceList | LogList

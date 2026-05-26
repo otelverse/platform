@@ -9,11 +9,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/otelverse/unified-platform/pipeline"
 	"github.com/otelverse/unified-platform/uql"
 )
 
 type GraphQLResolver struct {
-	db *sql.DB
+	db            *sql.DB
+	pipelineStore *pipeline.Store
 }
 
 type TracesQuery struct {
@@ -43,7 +45,10 @@ type GraphQLResponse struct {
 }
 
 func NewGraphQLResolver(db *sql.DB) *GraphQLResolver {
-	return &GraphQLResolver{db: db}
+	return &GraphQLResolver{
+		db:            db,
+		pipelineStore: pipeline.NewStore(),
+	}
 }
 
 func (r *GraphQLResolver) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -66,6 +71,10 @@ func (r *GraphQLResolver) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func (r *GraphQLResolver) executeQuery(ctx context.Context, query string, vars map[string]interface{}) (interface{}, error) {
 	query = strings.TrimSpace(query)
 
+	if strings.HasPrefix(query, "mutation") {
+		return r.resolveMutation(ctx, query, vars)
+	}
+
 	if strings.Contains(query, "query traces") || strings.Contains(query, "query { traces") {
 		return r.resolveTraces(ctx, vars)
 	}
@@ -77,6 +86,18 @@ func (r *GraphQLResolver) executeQuery(ctx context.Context, query string, vars m
 	}
 	if strings.Contains(query, "query uql") || strings.Contains(query, "query { uql") {
 		return r.resolveUQL(ctx, vars)
+	}
+	if strings.Contains(query, "pipelines") {
+		return r.resolvePipelines(ctx, vars)
+	}
+	if strings.Contains(query, "pipeline(") {
+		return r.resolvePipeline(ctx, vars)
+	}
+	if strings.Contains(query, "pipelineValidate") {
+		return r.resolvePipelineValidate(ctx, vars)
+	}
+	if strings.Contains(query, "pipelineExportYAML") {
+		return r.resolvePipelineExportYAML(ctx, vars)
 	}
 
 	return nil, fmt.Errorf("unsupported query")
@@ -406,6 +427,256 @@ func (r *GraphQLResolver) uqlLogResult(rows *sql.Rows) (interface{}, error) {
 	}
 
 	return map[string]interface{}{"uql": map[string]interface{}{"logs": logs}}, nil
+}
+
+func (r *GraphQLResolver) resolveMutation(ctx context.Context, query string, vars map[string]interface{}) (interface{}, error) {
+	if strings.Contains(query, "pipelineCreate") {
+		return r.resolvePipelineCreate(ctx, vars)
+	}
+	if strings.Contains(query, "pipelineUpdate") {
+		return r.resolvePipelineUpdate(ctx, vars)
+	}
+	if strings.Contains(query, "pipelineDelete") {
+		return r.resolvePipelineDelete(ctx, vars)
+	}
+	if strings.Contains(query, "pipelineDeploy") {
+		return r.resolvePipelineDeploy(ctx, vars)
+	}
+	return nil, fmt.Errorf("unsupported mutation")
+}
+
+func (r *GraphQLResolver) resolvePipelines(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	pipelines := r.pipelineStore.List()
+	items := make([]interface{}, 0, len(pipelines))
+	for _, p := range pipelines {
+		items = append(items, pipelineToMap(p))
+	}
+	return map[string]interface{}{"pipelines": items}, nil
+}
+
+func (r *GraphQLResolver) resolvePipeline(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	id, _ := vars["id"].(string)
+	if id == "" {
+		return nil, fmt.Errorf("pipeline id is required")
+	}
+	p, ok := r.pipelineStore.Get(id)
+	if !ok {
+		return map[string]interface{}{"pipeline": nil}, nil
+	}
+	return map[string]interface{}{"pipeline": pipelineToMap(p)}, nil
+}
+
+func (r *GraphQLResolver) resolvePipelineCreate(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	inputRaw, ok := vars["input"]
+	if !ok {
+		return nil, fmt.Errorf("input is required")
+	}
+	inputMap, ok := inputRaw.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid input format")
+	}
+	input, err := mapToPipelineInput(inputMap)
+	if err != nil {
+		return nil, fmt.Errorf("invalid input: %w", err)
+	}
+	p := r.pipelineStore.Create(*input)
+	return map[string]interface{}{"pipelineCreate": pipelineToMap(p)}, nil
+}
+
+func (r *GraphQLResolver) resolvePipelineUpdate(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	id, _ := vars["id"].(string)
+	if id == "" {
+		return nil, fmt.Errorf("pipeline id is required")
+	}
+	inputRaw, ok := vars["input"]
+	if !ok {
+		return nil, fmt.Errorf("input is required")
+	}
+	inputMap, ok := inputRaw.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid input format")
+	}
+	input, err := mapToPipelineInput(inputMap)
+	if err != nil {
+		return nil, fmt.Errorf("invalid input: %w", err)
+	}
+	p, ok := r.pipelineStore.Update(id, *input)
+	if !ok {
+		return nil, fmt.Errorf("pipeline not found: %s", id)
+	}
+	return map[string]interface{}{"pipelineUpdate": pipelineToMap(p)}, nil
+}
+
+func (r *GraphQLResolver) resolvePipelineDelete(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	id, _ := vars["id"].(string)
+	if id == "" {
+		return nil, fmt.Errorf("pipeline id is required")
+	}
+	ok := r.pipelineStore.Delete(id)
+	return map[string]interface{}{"pipelineDelete": ok}, nil
+}
+
+func (r *GraphQLResolver) resolvePipelineValidate(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	id, _ := vars["id"].(string)
+	if id == "" {
+		return nil, fmt.Errorf("pipeline id is required")
+	}
+	p, ok := r.pipelineStore.Get(id)
+	if !ok {
+		return nil, fmt.Errorf("pipeline not found: %s", id)
+	}
+	valid, validationErrors := pipeline.Validate(p)
+	return map[string]interface{}{
+		"pipelineValidate": map[string]interface{}{
+			"valid":  valid,
+			"errors": validationErrors,
+		},
+	}, nil
+}
+
+func (r *GraphQLResolver) resolvePipelineExportYAML(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	id, _ := vars["id"].(string)
+	if id == "" {
+		return nil, fmt.Errorf("pipeline id is required")
+	}
+	p, ok := r.pipelineStore.Get(id)
+	if !ok {
+		return nil, fmt.Errorf("pipeline not found: %s", id)
+	}
+	yamlStr, err := pipeline.ExportYAML(p)
+	if err != nil {
+		return nil, fmt.Errorf("yaml export failed: %w", err)
+	}
+	return map[string]interface{}{"pipelineExportYAML": yamlStr}, nil
+}
+
+func (r *GraphQLResolver) resolvePipelineDeploy(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	id, _ := vars["id"].(string)
+	if id == "" {
+		return nil, fmt.Errorf("pipeline id is required")
+	}
+	p, ok := r.pipelineStore.Get(id)
+	if !ok {
+		return nil, fmt.Errorf("pipeline not found: %s", id)
+	}
+	result, err := pipeline.Deploy(ctx, p)
+	if err != nil {
+		return nil, fmt.Errorf("deploy failed: %w", err)
+	}
+	return map[string]interface{}{
+		"pipelineDeploy": map[string]interface{}{
+			"containerId": result.ContainerID,
+			"status":      result.Status,
+		},
+	}, nil
+}
+
+func pipelineToMap(p *pipeline.Pipeline) map[string]interface{} {
+	nodes := make([]interface{}, 0, len(p.Nodes))
+	for _, n := range p.Nodes {
+		nodes = append(nodes, map[string]interface{}{
+			"id":         n.ID,
+			"type":       string(n.Type),
+			"label":      n.Label,
+			"properties": n.Properties,
+			"position": map[string]interface{}{
+				"x": n.Position.X,
+				"y": n.Position.Y,
+			},
+		})
+	}
+	edges := make([]interface{}, 0, len(p.Edges))
+	for _, e := range p.Edges {
+		edge := map[string]interface{}{
+			"id":     e.ID,
+			"source": e.Source,
+			"target": e.Target,
+		}
+		if e.SourceHandle != nil {
+			edge["sourceHandle"] = *e.SourceHandle
+		}
+		if e.TargetHandle != nil {
+			edge["targetHandle"] = *e.TargetHandle
+		}
+		edges = append(edges, edge)
+	}
+	return map[string]interface{}{
+		"id":    p.ID,
+		"name":  p.Name,
+		"nodes": nodes,
+		"edges": edges,
+	}
+}
+
+func mapToPipelineInput(m map[string]interface{}) (*pipeline.PipelineInput, error) {
+	name, _ := m["name"].(string)
+	if name == "" {
+		return nil, fmt.Errorf("pipeline name is required")
+	}
+	input := &pipeline.PipelineInput{
+		Name:  name,
+		Nodes: []pipeline.PipelineNode{},
+		Edges: []pipeline.PipelineEdge{},
+	}
+	if nodesRaw, ok := m["nodes"].([]interface{}); ok {
+		for _, nr := range nodesRaw {
+			nm, ok := nr.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			node := pipeline.PipelineNode{
+				ID:         getString(nm, "id"),
+				Type:       pipeline.NodeType(getString(nm, "type")),
+				Label:      getString(nm, "label"),
+				Properties: nm,
+			}
+			if posRaw, ok := nm["position"].(map[string]interface{}); ok {
+				node.Position.X = getFloat(posRaw, "x")
+				node.Position.Y = getFloat(posRaw, "y")
+			}
+			if propsRaw, ok := nm["properties"]; ok {
+				if propsMap, ok := propsRaw.(map[string]interface{}); ok {
+					node.Properties = propsMap
+				}
+			}
+			input.Nodes = append(input.Nodes, node)
+		}
+	}
+	if edgesRaw, ok := m["edges"].([]interface{}); ok {
+		for _, er := range edgesRaw {
+			em, ok := er.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			edge := pipeline.PipelineEdge{
+				ID:     getString(em, "id"),
+				Source: getString(em, "source"),
+				Target: getString(em, "target"),
+			}
+			if sh, ok := em["sourceHandle"].(string); ok {
+				edge.SourceHandle = &sh
+			}
+			if th, ok := em["targetHandle"].(string); ok {
+				edge.TargetHandle = &th
+			}
+			input.Edges = append(input.Edges, edge)
+		}
+	}
+	return input, nil
+}
+
+func getString(m map[string]interface{}, key string) string {
+	if v, ok := m[key].(string); ok {
+		return v
+	}
+	return ""
+}
+
+func getFloat(m map[string]interface{}, key string) float64 {
+	if v, ok := m[key].(float64); ok {
+		return v
+	}
+	return 0
 }
 
 func parseAttributes(attrs *string) []interface{} {
