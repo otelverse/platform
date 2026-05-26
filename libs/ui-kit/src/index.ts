@@ -1,1 +1,3 @@
-export const VERSION = "0.0.1-dev"
+export { ThemeProvider, useTheme, ThemeToggle } from './theme'
+export { VERSION } from './version'
+

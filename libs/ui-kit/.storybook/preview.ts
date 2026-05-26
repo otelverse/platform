@@ -1,4 +1,6 @@
+import React from 'react'
 import type { Preview } from '@storybook/react'
+import { ThemeProvider } from '../src/theme'
 import '../src/globals.css'
 
 const preview: Preview = {
@@ -7,9 +9,11 @@ const preview: Preview = {
   },
   decorators: [
     (Story) => (
-      <div className="bg-bg-default text-text-primary min-h-screen p-8">
-        <Story />
-      </div>
+      <ThemeProvider>
+        <div className="bg-bg-default text-text-primary min-h-screen p-8">
+          <Story />
+        </div>
+      </ThemeProvider>
     ),
   ],
 }
