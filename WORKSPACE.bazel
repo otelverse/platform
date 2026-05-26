@@ -20,7 +20,7 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_depe
 
 go_rules_dependencies()
 
-go_register_toolchains(version = "1.24.4")
+go_register_toolchains(version = "1.24.12")
 
 # Gazelle — BUILD file generator
 http_archive(
@@ -32,6 +32,10 @@ http_archive(
     ],
 )
 
-load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+load("//packages/unified-platform:deps.bzl", "unified_platform_deps")
+
+# gazelle:repository_macro packages/unified-platform/deps.bzl%unified_platform_deps
+unified_platform_deps()
 
 gazelle_dependencies()

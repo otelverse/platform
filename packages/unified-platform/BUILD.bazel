@@ -1,11 +1,15 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 
 package(default_visibility = ["//visibility:public"])
 
 go_library(
     name = "platform_lib",
-    srcs = glob(["*.go"]),
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    embedsrcs = glob(["migrations/*.sql"]),
     importpath = "github.com/otelverse/unified-platform",
+    deps = [
+        "@com_github_clickhouse_clickhouse_go_v2//:go_default_library",
+    ],
     visibility = ["//visibility:public"],
 )
 
@@ -13,6 +17,17 @@ go_binary(
     name = "platform",
     embed = [":platform_lib"],
     visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "platform_test",
+    srcs = glob(["*_test.go"]),
+    embed = [":platform_lib"],
+    deps = [
+        "@com_github_testcontainers_testcontainers_go//:go_default_library",
+        "@com_github_testcontainers_testcontainers_go//wait:go_default_library",
+        "@com_github_clickhouse_clickhouse_go_v2//:go_default_library",
+    ],
 )
 
 filegroup(

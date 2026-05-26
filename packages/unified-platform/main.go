@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,6 +9,20 @@ import (
 )
 
 func main() {
+	migrate := flag.Bool("migrate", false, "run database migrations")
+	flag.Parse()
+
+	if *migrate {
+		dsn := os.Getenv("CLICKHOUSE_DSN")
+		if dsn == "" {
+			dsn = "clickhouse://localhost:9000?username=default&password="
+		}
+		if err := RunMigrations(dsn); err != nil {
+			log.Fatalf("migration failed: %v", err)
+		}
+		return
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
