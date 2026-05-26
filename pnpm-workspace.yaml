@@ -1,0 +1,8 @@
+packages:
+  - 'libs/*'
+  - 'packages/*/web'
+  - 'packages/*'
+allowBuilds:
+  '@bundled-es-modules/glob': set this to true or false
+  esbuild: set this to true or false
+  style-dictionary: set this to true or false
