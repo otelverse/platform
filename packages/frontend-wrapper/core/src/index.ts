@@ -1,3 +1,3 @@
-export function placeholder(): string {
-  return '@otelverse/web - frontend telemetry SDK'
-}
+export { initOtel } from './init'
+export { getSessionId } from './session'
+export type { OtelConfig, OtelInstance } from './types'

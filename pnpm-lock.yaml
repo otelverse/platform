@@ -151,6 +151,9 @@ importers:
       '@opentelemetry/exporter-trace-otlp-http':
         specifier: ^0.218.0
         version: 0.218.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/instrumentation':
+        specifier: ^0.218.0
+        version: 0.218.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/instrumentation-document-load':
         specifier: ^0.63.0
         version: 0.63.0(@opentelemetry/api@1.9.1)
@@ -160,12 +163,18 @@ importers:
       '@opentelemetry/instrumentation-xml-http-request':
         specifier: ^0.218.0
         version: 0.218.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/resources':
+        specifier: ^2.7.0
+        version: 2.7.1(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-metrics':
         specifier: ^2.7.0
         version: 2.7.1(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-web':
         specifier: ^2.7.0
         version: 2.7.1(@opentelemetry/api@1.9.1)
+      '@opentelemetry/semantic-conventions':
+        specifier: ^1.41.0
+        version: 1.41.1
       web-vitals:
         specifier: ^5.0.0
         version: 5.2.0
@@ -188,6 +197,9 @@ importers:
 
   packages/frontend-wrapper/react:
     dependencies:
+      '@opentelemetry/api':
+        specifier: ^1.9.0
+        version: 1.9.1
       '@otelverse/web':
         specifier: workspace:*
         version: link:../core
