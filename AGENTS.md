@@ -8,6 +8,6 @@
 - Every feature must have tests: unit tests (Go: testify, TS: Jest), integration tests (testcontainers-go, kind), E2E for UI (Cypress). Tests are in the same package directory.
 - Code style: Go (gofumpt), TypeScript (ESLint, Prettier), Python (Black). Run `bazel run //tools:lint` before committing.
 - Commit often with conventional commits. No giant commits.
-- After finishing a session task, run all tests (`bazel test //...`), fix any failures, then open a PR to `develop`. Merge only if CI passes.
+- After finishing a session task, run all tests (`bazel test //...`), fix any failures, then merge to `develop`. Merge only if CI passes.
 - Update `VERSION` file and create a git tag for the session milestone if applicable.
 - Documentation: update `README.md` and relevant product `README.md` when adding new features.
