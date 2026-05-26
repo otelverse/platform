@@ -1,0 +1,56 @@
+{
+  "color": {
+    "$type": "color",
+    "gray": {
+      "0": { "$value": "#0D1117" },
+      "10": { "$value": "#161B22" },
+      "20": { "$value": "#21262D" },
+      "30": { "$value": "#30363D" },
+      "40": { "$value": "#484F58" },
+      "50": { "$value": "#6E7681" },
+      "60": { "$value": "#8B949E" },
+      "70": { "$value": "#C9D1D9" },
+      "80": { "$value": "#E6EDF3" },
+      "90": { "$value": "#F0F6FC" },
+      "100": { "$value": "#FFFFFF" }
+    },
+    "primary": {
+      "base": { "$value": "#58A6FF" },
+      "hover": { "$value": "#79C0FF" }
+    },
+    "secondary": {
+      "base": { "$value": "#BC8CFF" }
+    },
+    "error": {
+      "base": { "$value": "#F85149" },
+      "bg": { "$value": "#490202" }
+    },
+    "warning": {
+      "base": { "$value": "#D29922" },
+      "bg": { "$value": "#341A00" }
+    },
+    "success": {
+      "base": { "$value": "#3FB950" },
+      "bg": { "$value": "#04260F" }
+    },
+    "info": {
+      "base": { "$value": "#39D353" },
+      "bg": { "$value": "#041B20" }
+    },
+    "bg": {
+      "default": { "$value": "#161B22" },
+      "elevated": { "$value": "#21262D" },
+      "overlay": { "$value": "rgba(0,0,0,0.5)" }
+    },
+    "text": {
+      "primary": { "$value": "#E6EDF3" },
+      "secondary": { "$value": "#6E7681" },
+      "muted": { "$value": "#484F58" },
+      "inverse": { "$value": "#0D1117" }
+    },
+    "border": {
+      "default": { "$value": "#30363D" },
+      "muted": { "$value": "#21262D" }
+    }
+  }
+}
