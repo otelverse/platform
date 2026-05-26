@@ -1,0 +1,4 @@
+common --enable_workspace
+common --incompatible_strict_action_env
+build --disk_cache=~/.cache/bazel
+test --test_output=errors

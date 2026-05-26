@@ -1,0 +1,144 @@
+workspace(name = "otelverse")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# rules_go — Go support
+http_archive(
+    name = "io_bazel_rules_go",
+    sha256 = "86d3dc8f59d253524f933aaf2f3c05896cb0b605fc35b460c0b4b039996124c6",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazel-contrib/rules_go/releases/download/v0.60.0/rules_go-v0.60.0.zip",
+        "https://github.com/bazel-contrib/rules_go/releases/download/v0.60.0/rules_go-v0.60.0.zip",
+    ],
+)
+
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+
+go_rules_dependencies()
+
+go_register_toolchains(version = "1.24.4")
+
+# Gazelle — BUILD file generator
+http_archive(
+    name = "bazel_gazelle",
+    sha256 = "de86bb09ddac514d9831cd0af5addb49f196eff66cf7c779a595b410cbe40253",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazel-contrib/bazel-gazelle/releases/download/v0.51.0/bazel-gazelle-v0.51.0.tar.gz",
+        "https://github.com/bazel-contrib/bazel-gazelle/releases/download/v0.51.0/bazel-gazelle-v0.51.0.tar.gz",
+    ],
+)
+
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+
+gazelle_dependencies()
+
+# rules_rust — Rust support
+http_archive(
+    name = "rules_rust",
+    sha256 = "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_rust/releases/download/0.69.0/rules_rust-v0.69.0.tar.gz",
+        "https://github.com/bazelbuild/rules_rust/releases/download/0.69.0/rules_rust-v0.69.0.tar.gz",
+    ],
+)
+
+load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
+
+rules_rust_dependencies()
+
+rust_register_toolchains()
+
+# rules_python — Python support
+http_archive(
+    name = "rules_python",
+    sha256 = "2119ca04726066c53b8f1ff42dffa090ea7f3e42a75679f1cfda937406cf7753",
+    strip_prefix = "rules_python-2.0.2",
+    url = "https://github.com/bazel-contrib/rules_python/releases/download/2.0.2/rules_python-2.0.2.tar.gz",
+)
+
+load("@rules_python//python:repositories.bzl", "py_repositories")
+
+py_repositories()
+
+# aspect_rules_ts — TypeScript support
+http_archive(
+    name = "aspect_rules_ts",
+    sha256 = "06a432998e3f0b4c1057926b3946b51057413c6ffcb19bbc5e2674191a061063",
+    strip_prefix = "rules_ts-3.8.10",
+    url = "https://github.com/aspect-build/rules_ts/releases/download/v3.8.10/rules_ts-v3.8.10.tar.gz",
+)
+
+load("@aspect_rules_ts//ts:repositories.bzl", "rules_ts_dependencies")
+
+rules_ts_dependencies()
+
+# rules_proto — Protocol Buffers
+http_archive(
+    name = "rules_proto",
+    sha256 = "303e86e722a520f6f326a50b41cfc16b98fe6d1955ce46642a5b7a67c11c0f5d",
+    strip_prefix = "rules_proto-6.0.0",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/releases/download/6.0.0/rules_proto-6.0.0.tar.gz",
+        "https://github.com/bazelbuild/rules_proto/releases/download/6.0.0/rules_proto-6.0.0.tar.gz",
+    ],
+)
+
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
+load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
+
+rules_proto_dependencies()
+
+rules_proto_toolchains()
+
+# rules_docker — Docker image support
+http_archive(
+    name = "io_bazel_rules_docker",
+    sha256 = "f6dcb97e992f13bc9effd794e9bb300f06b0dadc88061f81ae68d8d5994be964",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_docker/releases/download/v0.26.0/rules_docker-v0.26.0.tar.gz",
+        "https://github.com/bazelbuild/rules_docker/releases/download/v0.26.0/rules_docker-v0.26.0.tar.gz",
+    ],
+)
+
+load(
+    "@io_bazel_rules_docker//repositories:repositories.bzl",
+    container_repositories = "repositories",
+)
+
+container_repositories()
+
+load("@io_bazel_rules_docker//repositories:repositories.bzl", "container_repositories")
+
+container_repositories()
+
+load(
+    "@io_bazel_rules_docker//repositories:deps.bzl",
+    container_deps = "deps",
+)
+
+container_deps()
+
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_pull",
+)
+
+container_pull(
+    name = "alpine_linux_amd64",
+    registry = "index.docker.io",
+    repository = "library/alpine",
+    tag = "3.19",
+)
+
+# rules_helm — Helm chart support
+http_archive(
+    name = "rules_helm",
+    sha256 = "88121fe45f105a1f75cde9d7a9e50fb7de9a76af3b94aee7bd73b3d0c47a50bc",
+    url = "https://github.com/periareon/rules_helm/releases/download/0.24.0/rules_helm-v0.24.0.tar.gz",
+)
+
+load("@rules_helm//helm:repositories.bzl", "rules_helm_dependencies", "helm_register_toolchains")
+
+rules_helm_dependencies()
+
+helm_register_toolchains()
