@@ -14,7 +14,10 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "paths": {
+      "@otelverse/web": ["../core/src"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist", "**/__tests__/**"]

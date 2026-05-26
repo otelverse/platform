@@ -6,4 +6,9 @@ module.exports = {
   transform: {
     '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.json' }],
   },
+  setupFiles: ['./jest.polyfills.js'],
+  moduleNameMapper: {
+    '^@otelverse/web$': '<rootDir>/../core/src/index.ts',
+    '^web-vitals$': '<rootDir>/__mocks__/web-vitals.ts',
+  },
 }
