@@ -1,0 +1,42 @@
+type Query {
+  traces(serviceName: String, operationName: String, startTime: DateTime!, endTime: DateTime!, limit: Int = 100): [Trace!]!
+  trace(id: String!): Trace
+  logs(severity: String, message: String, startTime: DateTime!, endTime: DateTime!, limit: Int = 100): [Log!]!
+}
+
+scalar DateTime
+
+type Trace {
+  traceId: String!
+  spans: [Span!]!
+}
+
+type Span {
+  spanId: String!
+  parentSpanId: String
+  operationName: String!
+  serviceName: String!
+  startTime: String!
+  duration: Int!
+  statusCode: Int!
+  attributes: [Attribute!]!
+  events: [Event!]!
+}
+
+type Attribute {
+  key: String!
+  value: String!
+}
+
+type Event {
+  name: String!
+  timestamp: String!
+  attributes: [Attribute!]!
+}
+
+type Log {
+  timestamp: String!
+  severity: String!
+  body: String!
+  attributes: [Attribute!]!
+}

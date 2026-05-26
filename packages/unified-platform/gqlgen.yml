@@ -1,0 +1,15 @@
+schema:
+  - api/schema.graphqls
+
+exec:
+  filename: api/generated.go
+  package: api
+
+model:
+  filename: api/models_gen.go
+  package: api
+
+resolver:
+  filename: api/resolver.go
+  type: Resolver
+  package: api
