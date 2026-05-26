@@ -7,18 +7,25 @@ filegroup(
 
 sh_test(
     name = "unit_test",
-    srcs = ["jest.config.js"],
-    args = [
-        "npx",
-        "jest",
-        "--config",
-        "jest.config.js",
-        "--ci",
-    ],
+    srcs = ["run_tests.sh"],
     data = glob([
-        "src/**",
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "dist/**",
+        "*.json",
+        "*.js",
+        "*.ts",
+        "*.css",
+    ], allow_empty = True),
+)
+
+sh_binary(
+    name = "jest_test",
+    srcs = ["jest_runner.sh"],
+    data = [
         "jest.config.js",
         "package.json",
+        "pnpm-lock.yaml",
         "tsconfig.json",
-    ]),
+    ],
 )

@@ -1,4 +1,5 @@
 common --enable_workspace
-common --incompatible_strict_action_env
+# common --incompatible_strict_action_env  # disabled to allow npx/node in sh_test
 build --disk_cache=~/.cache/bazel
 test --test_output=errors
+test --test_env=PATH
