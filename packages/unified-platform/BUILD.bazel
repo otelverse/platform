@@ -8,6 +8,7 @@ go_library(
     embedsrcs = glob(["migrations/*.sql"]),
     importpath = "github.com/otelverse/unified-platform",
     deps = [
+        "//packages/unified-platform/uql:uql",
         "@com_github_clickhouse_clickhouse_go_v2//:go_default_library",
         "@io_opentelemetry_go_proto_otlp//collector/logs/v1:go_default_library",
         "@io_opentelemetry_go_proto_otlp//collector/trace/v1:go_default_library",

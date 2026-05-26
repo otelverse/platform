@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+package(default_visibility = ["//visibility:public"])
+
+go_library(
+    name = "uql",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    importpath = "github.com/otelverse/unified-platform/uql",
+    deps = [],
+)
+
+go_test(
+    name = "uql_test",
+    srcs = glob(["*_test.go"]),
+    embed = [":uql"],
+    deps = [
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
+
+filegroup(
+    name = "all",
+    srcs = glob(["**"]),
+)
