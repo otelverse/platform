@@ -7,6 +7,12 @@ go_library(
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     importpath = "github.com/otelverse/unified-platform/pipeline",
     deps = [
+        "@com_github_docker_docker//api/types/container",
+        "@com_github_docker_docker//api/types/image",
+        "@com_github_docker_docker//api/types/network",
+        "@com_github_docker_docker//client",
+        "@com_github_docker_go_connections//nat",
+        "@com_github_opencontainers_image_spec//specs-go/v1:specs-go",
         "@in_gopkg_yaml_v3//:go_default_library",
     ],
 )
