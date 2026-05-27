@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, Link } from 'react-router-dom'
 import { Layout } from '@otelverse/ui-kit'
 import TraceListPage from './pages/TraceListPage'
 import TraceDetailPage from './pages/TraceDetailPage'
+import { EdgeAgentListPage } from './pages/Edge/EdgeAgentListPage'
 
 const PipelineBuilderPage = lazy(() => import('./pages/PipelineBuilder/PipelineBuilderPage'))
 const SessionReplayPage = lazy(() => import('./pages/SessionReplayPage').then(m => ({ default: m.SessionReplayPage })))
@@ -30,6 +31,9 @@ function SidebarNav() {
         <li className="mb-2">
           <Link to="/chaos" className="text-blue-600 hover:underline">Chaos Experiments</Link>
         </li>
+        <li className="mb-2">
+          <Link to="/edge" className="text-blue-600 hover:underline">Edge Agents</Link>
+        </li>
       </ul>
     </nav>
   )
@@ -52,8 +56,10 @@ export default function App() {
           <Route path="/chaos" element={<ChaosExperimentsPage />} />
           <Route path="/chaos/new" element={<ChaosExperimentCreateForm />} />
           <Route path="/chaos/:id" element={<ChaosExperimentDetailPage />} />
+          <Route path="/edge" element={<EdgeAgentListPage />} />
         </Routes>
       </Suspense>
     </Layout>
   )
 }
+
