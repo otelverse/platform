@@ -98,14 +98,26 @@ type DeployResult {
   status: String!
 }
 
-union UQLResult = TraceList | LogList
-
-type TraceList {
-  traces: [Trace!]!
+type UQLResult {
+  traces: [Trace!]
+  logs: [LogEntry!]
+  aggregation: [AggregationRow!]
+  joinResults: [JoinResult!]
 }
 
-type LogList {
-  logs: [Log!]!
+type AggregationRow {
+  keys: [String!]!
+  values: [AggregationValue!]!
+}
+
+type AggregationValue {
+  function: String!
+  value: Float!
+}
+
+type JoinResult {
+  trace: Trace!
+  logs: [LogEntry!]!
 }
 
 scalar DateTime

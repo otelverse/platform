@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -334,6 +335,14 @@ func (r *GraphQLResolver) resolveUQL(ctx context.Context, vars map[string]interf
 	}
 	defer rows.Close()
 
+	if query.Aggregation != nil {
+		return r.uqlAggregationResult(rows, query.Aggregation)
+	}
+	
+	if query.Join != nil {
+		return r.uqlJoinResult(rows, query.Join)
+	}
+
 	switch query.Type {
 	case uql.QueryTypeTraces:
 		return r.uqlTraceResult(rows)
@@ -342,6 +351,173 @@ func (r *GraphQLResolver) resolveUQL(ctx context.Context, vars map[string]interf
 	default:
 		return nil, fmt.Errorf("unknown query type")
 	}
+}
+
+func (r *GraphQLResolver) uqlAggregationResult(rows *sql.Rows, agg *uql.AggregationNode) (interface{}, error) {
+	cols, err := rows.Columns()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get columns: %w", err)
+	}
+
+	var results []interface{}
+	
+	for rows.Next() {
+		// Create a slice of interface{}'s to represent each column,
+		// and a second slice to contain pointers to each item in the columns slice.
+		columns := make([]interface{}, len(cols))
+		columnPointers := make([]interface{}, len(cols))
+		for i := range columns {
+			columnPointers[i] = &columns[i]
+		}
+
+		if err := rows.Scan(columnPointers...); err != nil {
+			return nil, fmt.Errorf("scan failed: %w", err)
+		}
+
+		var keys []string
+		var values []interface{}
+		
+		for i, colName := range cols {
+			val := columns[i]
+			if val == nil {
+				continue
+			}
+			
+			// Assuming grouping keys are strings and aggregation values are floats
+			switch v := val.(type) {
+			case []byte:
+				// Typically for strings in driver
+				if agg.GroupByField != "" && i == 0 {
+					keys = append(keys, string(v))
+				} else {
+					// Fallback if float is returned as string
+					floatVal, _ := strconv.ParseFloat(string(v), 64)
+					values = append(values, map[string]interface{}{
+						"function": colName,
+						"value": floatVal,
+					})
+				}
+			case string:
+				if agg.GroupByField != "" && i == 0 {
+					keys = append(keys, v)
+				} else {
+					floatVal, _ := strconv.ParseFloat(v, 64)
+					values = append(values, map[string]interface{}{
+						"function": colName,
+						"value": floatVal,
+					})
+				}
+			default:
+				// Float, int, etc.
+				floatVal := 0.0
+				switch vt := v.(type) {
+				case float64:
+					floatVal = vt
+				case float32:
+					floatVal = float64(vt)
+				case int64:
+					floatVal = float64(vt)
+				case int32:
+					floatVal = float64(vt)
+				case int:
+					floatVal = float64(vt)
+				case uint64:
+					floatVal = float64(vt)
+				case uint32:
+					floatVal = float64(vt)
+				}
+				values = append(values, map[string]interface{}{
+					"function": colName,
+					"value": floatVal,
+				})
+			}
+		}
+
+		results = append(results, map[string]interface{}{
+			"keys": keys,
+			"values": values,
+		})
+	}
+	
+	return map[string]interface{}{"aggregation": results}, nil
+}
+
+func (r *GraphQLResolver) uqlJoinResult(rows *sql.Rows, join *uql.JoinNode) (interface{}, error) {
+	// For MVP, only traces to logs is supported.
+	// Columns: t.TraceId, t.SpanId, t.ParentSpanId, t.OperationName, t.ServiceName, t.StartTime, t.Duration, t.StatusCode, t.StatusMessage, t.Attributes, t.ResourceAttributes
+	// LogTimestamp, LogSeverity, LogBody, LogAttributes
+	
+	traceMap := make(map[string]map[string]interface{})
+	
+	for rows.Next() {
+		var TraceID, SpanID, OperationName, ServiceName, StartTime, LogTimestamp, LogSeverity, LogBody string
+		var ParentSpanID, StatusMessage, Attributes, ResourceAttributes, LogAttributes *string
+		var Duration int64
+		var StatusCode int32
+		
+		if err := rows.Scan(
+			&TraceID, &SpanID, &ParentSpanID, &OperationName, &ServiceName, &StartTime,
+			&Duration, &StatusCode, &StatusMessage, &Attributes, &ResourceAttributes,
+			&LogTimestamp, &LogSeverity, &LogBody, &LogAttributes,
+		); err != nil {
+			return nil, fmt.Errorf("scan failed: %w", err)
+		}
+		
+		traceObj, ok := traceMap[TraceID]
+		if !ok {
+			traceObj = map[string]interface{}{
+				"trace": map[string]interface{}{
+					"traceId": TraceID,
+					"spans":   []interface{}{},
+				},
+				"logs": []interface{}{},
+			}
+			traceMap[TraceID] = traceObj
+		}
+		
+		// Add span (naive deduplication for spans)
+		spans := traceObj["trace"].(map[string]interface{})["spans"].([]interface{})
+		spanExists := false
+		for _, s := range spans {
+			if s.(map[string]interface{})["spanId"] == SpanID {
+				spanExists = true
+				break
+			}
+		}
+		if !spanExists {
+			span := map[string]interface{}{
+				"spanId":        SpanID,
+				"parentSpanId":  ParentSpanID,
+				"operationName": OperationName,
+				"serviceName":   ServiceName,
+				"startTime":     StartTime,
+				"duration":      Duration,
+				"statusCode":    StatusCode,
+				"attributes":    parseAttributes(Attributes),
+				"events":        []interface{}{},
+			}
+			traceObj["trace"].(map[string]interface{})["spans"] = append(spans, span)
+		}
+		
+		// Add log
+		if LogTimestamp != "" {
+			log := map[string]interface{}{
+				"timestamp": LogTimestamp,
+				"severity": LogSeverity,
+				"body": LogBody,
+				"traceId": TraceID,
+				"attributes": parseAttributes(LogAttributes),
+			}
+			traceObj["logs"] = append(traceObj["logs"].([]interface{}), log)
+		}
+	}
+	
+	var joinResults []interface{}
+	for _, v := range traceMap {
+		joinResults = append(joinResults, v)
+	}
+	
+	return map[string]interface{}{"joinResults": joinResults}, nil
 }
 
 func (r *GraphQLResolver) uqlTraceResult(rows *sql.Rows) (interface{}, error) {
