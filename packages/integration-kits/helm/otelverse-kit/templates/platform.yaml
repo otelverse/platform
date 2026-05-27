@@ -1,0 +1,111 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: platform
+  template:
+    metadata:
+      labels:
+        app: platform
+    spec:
+      containers:
+        - name: platform
+          image: "{{ .Values.platform.image }}:{{ .Values.platform.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.platform.port }}
+          env:
+            - name: PORT
+              value: "{{ .Values.platform.port }}"
+            - name: CLICKHOUSE_DSN
+              value: "clickhouse://{{ .Release.Name }}-clickhouse:9000?username=default&password="
+            - name: OTLP_ADDR
+              value: ":4317"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-platform
+spec:
+  ports:
+    - port: 8080
+      targetPort: {{ .Values.platform.port }}
+      protocol: TCP
+      name: http
+  selector:
+    app: platform
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-clickhouse
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clickhouse
+  template:
+    metadata:
+      labels:
+        app: clickhouse
+    spec:
+      containers:
+        - name: clickhouse
+          image: "{{ .Values.clickhouse.image }}:{{ .Values.clickhouse.tag }}"
+          ports:
+            - containerPort: {{ .Values.clickhouse.port }}
+          env:
+            - name: CLICKHOUSE_DB
+              value: "default"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-clickhouse
+spec:
+  ports:
+    - port: 9000
+      targetPort: {{ .Values.clickhouse.port }}
+      protocol: TCP
+  selector:
+    app: clickhouse
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-victoriametrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: victoriametrics
+  template:
+    metadata:
+      labels:
+        app: victoriametrics
+    spec:
+      containers:
+        - name: victoriametrics
+          image: "{{ .Values.victoriaMetrics.image }}:{{ .Values.victoriaMetrics.tag }}"
+          ports:
+            - containerPort: {{ .Values.victoriaMetrics.port }}
+          command:
+            - "-storageDataPath=/storage"
+            - "-httpListenAddr=:8428"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-victoriametrics
+spec:
+  ports:
+    - port: 8428
+      targetPort: {{ .Values.victoriaMetrics.port }}
+      protocol: TCP
+  selector:
+    app: victoriametrics

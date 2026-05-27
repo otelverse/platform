@@ -1,0 +1,26 @@
+platform:
+  image: "otelverse/platform"
+  tag: "latest"
+  port: 8080
+
+clickhouse:
+  image: "clickhouse/clickhouse-server"
+  tag: "23.8"
+  port: 9000
+
+victoriaMetrics:
+  image: "victoriametrics/victoria-metrics"
+  tag: "v1.95.0"
+  port: 8428
+
+collector:
+  image: "otel/opentelemetry-collector-contrib"
+  tag: "0.95.0"
+
+sampleApps:
+  expressApp:
+    image: "otelverse/express-app"
+    tag: "latest"
+  reactApp:
+    image: "otelverse/react-app"
+    tag: "latest"
