@@ -18,8 +18,9 @@ import (
 type GraphQLResolver struct {
 	db            *sql.DB
 	pipelineStore *pipeline.Store
-	chaosStore    *ChaosStore
-	alertStore    *alerting.Store
+	chaosStore         *ChaosStore
+	alertStore         *alerting.Store
+	victoriaMetricsURL string
 }
 
 type TracesQuery struct {
@@ -48,12 +49,13 @@ type GraphQLResponse struct {
 	Errors []string    `json:"errors,omitempty"`
 }
 
-func NewGraphQLResolver(db *sql.DB) *GraphQLResolver {
+func NewGraphQLResolver(db *sql.DB, vmURL string) *GraphQLResolver {
 	return &GraphQLResolver{
-		db:            db,
-		pipelineStore: pipeline.NewStore(),
-		chaosStore:    NewChaosStore(),
-		alertStore:    alerting.NewStore(),
+		db:                 db,
+		pipelineStore:      pipeline.NewStore(),
+		chaosStore:         NewChaosStore(),
+		alertStore:         alerting.NewStore(),
+		victoriaMetricsURL: vmURL,
 	}
 }
 
@@ -94,6 +96,9 @@ func (r *GraphQLResolver) executeQuery(ctx context.Context, query string, vars m
 	}
 	if strings.Contains(query, "query logs") || strings.Contains(query, "query { logs") {
 		return r.resolveLogs(ctx, vars)
+	}
+	if strings.Contains(query, "query metrics") || strings.Contains(query, "query { metrics") {
+		return r.resolveMetrics(ctx, vars)
 	}
 	if strings.Contains(query, "query uql") || strings.Contains(query, "query { uql") {
 		return r.resolveUQL(ctx, vars)
@@ -305,63 +310,6 @@ func (r *GraphQLResolver) resolveTrace(ctx context.Context, vars map[string]inte
 	}, nil
 }
 
-func (r *GraphQLResolver) resolveLogs(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
-	limit := 100
-	if l, ok := vars["limit"].(float64); ok {
-		limit = int(l)
-	}
-
-	where := []string{"1=1"}
-	args := []interface{}{}
-
-	if sev, ok := vars["severity"].(string); ok && sev != "" {
-		where = append(where, "SeverityText = ?")
-		args = append(args, sev)
-	}
-	if msg, ok := vars["message"].(string); ok && msg != "" {
-		where = append(where, "Body LIKE ?")
-		args = append(args, "%"+msg+"%")
-	}
-	if st, ok := vars["startTime"].(string); ok && st != "" {
-		where = append(where, "Timestamp >= ?")
-		args = append(args, st)
-	}
-	if et, ok := vars["endTime"].(string); ok && et != "" {
-		where = append(where, "Timestamp <= ?")
-		args = append(args, et)
-	}
-
-	query := fmt.Sprintf(`
-		SELECT toString(Timestamp) as Timestamp, SeverityText, Body, Attributes
-		FROM otel_logs
-		WHERE %s
-		ORDER BY Timestamp DESC
-		LIMIT %d
-	`, strings.Join(where, " AND "), limit)
-
-	rows, err := r.db.QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, fmt.Errorf("query failed: %w", err)
-	}
-	defer rows.Close()
-
-	var logs []interface{}
-	for rows.Next() {
-		var timestamp, severity, body string
-		var attrs *string
-		if err := rows.Scan(&timestamp, &severity, &body, &attrs); err != nil {
-			return nil, fmt.Errorf("scan failed: %w", err)
-		}
-		logs = append(logs, map[string]interface{}{
-			"timestamp":  timestamp,
-			"severity":   severity,
-			"body":       body,
-			"attributes": parseAttributes(attrs),
-		})
-	}
-
-	return map[string]interface{}{"logs": logs}, nil
-}
 
 func (r *GraphQLResolver) resolveUQL(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
 	queryStr, _ := vars["query"].(string)
