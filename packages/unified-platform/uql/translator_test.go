@@ -109,3 +109,50 @@ func TestTranslateLogsSelectColumns(t *testing.T) {
 	assert.True(t, strings.Contains(sql, "SeverityText"))
 	assert.True(t, strings.Contains(sql, "Body"))
 }
+
+func TestTranslateAggregationCount(t *testing.T) {
+	q, err := NewParser(`traces | where service.name = "api" | by span.name | count`).Parse()
+	require.NoError(t, err)
+
+	sql, args, err := q.ToClickhouse()
+	require.NoError(t, err)
+	assert.Contains(t, sql, "SELECT OperationName, count(*) as count")
+	assert.Contains(t, sql, "FROM otel_traces")
+	assert.Contains(t, sql, "WHERE 1=1 AND ServiceName = ?")
+	assert.Contains(t, sql, "GROUP BY OperationName")
+	assert.Equal(t, []interface{}{"api"}, args)
+}
+
+func TestTranslateAggregationMultipleFunctions(t *testing.T) {
+	q, err := NewParser(`traces | by service.name | avg(duration), p95(duration)`).Parse()
+	require.NoError(t, err)
+
+	sql, _, err := q.ToClickhouse()
+	require.NoError(t, err)
+	assert.Contains(t, sql, "SELECT ServiceName, avg(Duration) as avg_duration, quantile(0.95)(Duration) as p95_duration")
+	assert.Contains(t, sql, "GROUP BY ServiceName")
+}
+
+func TestTranslateAggregationNoBy(t *testing.T) {
+	q, err := NewParser(`traces | count`).Parse()
+	require.NoError(t, err)
+
+	sql, _, err := q.ToClickhouse()
+	require.NoError(t, err)
+	assert.Contains(t, sql, "SELECT count(*) as count")
+	assert.NotContains(t, sql, "GROUP BY")
+}
+
+func TestTranslateJoin(t *testing.T) {
+	q, err := NewParser(`traces | where service.name = "api" | join logs on traceId`).Parse()
+	require.NoError(t, err)
+
+	sql, args, err := q.ToClickhouse()
+	require.NoError(t, err)
+	assert.Contains(t, sql, "SELECT t.TraceId, t.SpanId, t.ParentSpanId, t.OperationName, t.ServiceName")
+	assert.Contains(t, sql, "toString(l.Timestamp) as LogTimestamp, l.SeverityText as LogSeverity, l.Body as LogBody, l.Attributes as LogAttributes")
+	assert.Contains(t, sql, "FROM otel_traces t")
+	assert.Contains(t, sql, "LEFT JOIN otel_logs l ON t.TraceId = l.TraceId")
+	assert.Contains(t, sql, "WHERE 1=1 AND t.ServiceName = ?")
+	assert.Equal(t, []interface{}{"api"}, args)
+}
