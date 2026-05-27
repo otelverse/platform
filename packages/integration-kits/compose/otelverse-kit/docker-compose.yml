@@ -1,0 +1,94 @@
+version: "3.9"
+
+networks:
+  otelverse-network:
+    driver: bridge
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.8
+    ports:
+      - "${CLICKHOUSE_PORT}:9000"
+    environment:
+      CLICKHOUSE_DB: default
+    networks:
+      - otelverse-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8123/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  victoria-metrics:
+    image: victoriametrics/victoria-metrics:v1.95.0
+    ports:
+      - "${VM_PORT}:8428"
+    command:
+      - "-storageDataPath=/storage"
+      - "-httpListenAddr=:8428"
+    networks:
+      - otelverse-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8428/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.95.0
+    ports:
+      - "${OTLP_GRPC_PORT}:4317"
+      - "${OTLP_HTTP_PORT}:4318"
+    volumes:
+      - ../../../../unified-platform/docker/otel-collector-config.yml:/etc/otel-collector-config.yml
+    command: ["--config=/etc/otel-collector-config.yml"]
+    networks:
+      - otelverse-network
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      victoria-metrics:
+        condition: service_healthy
+
+  platform:
+    build:
+      context: ../../../../unified-platform
+      dockerfile: docker/Dockerfile
+    ports:
+      - "${PLATFORM_PORT}:8080"
+    environment:
+      PORT: "8080"
+      CLICKHOUSE_DSN: "clickhouse://clickhouse:9000?username=default&password="
+      OTLP_ADDR: ":4317"
+    networks:
+      - otelverse-network
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+
+  express-app:
+    build:
+      context: ./apps/express-app
+      dockerfile: Dockerfile
+    ports:
+      - "${EXPRESS_PORT}:3001"
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_SERVICE_NAME: express-app
+    networks:
+      - otelverse-network
+    depends_on:
+      otel-collector:
+        condition: service_started
+
+  react-app:
+    build:
+      context: ./apps/react-app
+      dockerfile: Dockerfile
+    ports:
+      - "${REACT_PORT}:5173"
+    networks:
+      - otelverse-network
+    depends_on:
+      express-app:
+        condition: service_started
