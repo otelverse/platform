@@ -4,7 +4,7 @@ sh_test(
     data = glob(["**/*"]),
     tags = [
         "exclusive",
-        "requires-docker",
         "manual",
+        "requires-docker",
     ],
 )

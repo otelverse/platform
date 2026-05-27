@@ -182,6 +182,12 @@ def unified_platform_deps():
         version = "v1.0.4",
     )
     go_repository(
+        name = "com_github_go_chi_chi_v5",
+        importpath = "github.com/go-chi/chi/v5",
+        sum = "h1:halUjDxhshgXHMrao5bB8eNBXo/rnzwr8m5m36glehM=",
+        version = "v5.3.0",
+    )
+    go_repository(
         name = "com_github_go_faster_city",
         importpath = "github.com/go-faster/city",
         sum = "h1:4WAxSZ3V2Ws4QRDrscLEDcibJY8uf41H6AhXDrNDcGw=",
@@ -265,7 +271,6 @@ def unified_platform_deps():
         sum = "h1:TuBL49tXwgrFYWhqrNgrUNEY92u81SPhu7sTdzQEiWY=",
         version = "v1.8.1",
     )
-
     go_repository(
         name = "com_github_gorilla_websocket",
         importpath = "github.com/gorilla/websocket",
@@ -332,7 +337,6 @@ def unified_platform_deps():
         sum = "h1:tTWxr2YLKwIvK90ZXEw8GP7UFHtcbTtty8zsI+YjrfQ=",
         version = "v1.12.3",
     )
-
     go_repository(
         name = "com_github_lufia_plan9stats",
         importpath = "github.com/lufia/plan9stats",
@@ -513,7 +517,6 @@ def unified_platform_deps():
         sum = "h1:0B9GE/r9Bc2UxRMMtymBkHTenPkHDv0CW4Y98GBY+po=",
         version = "v1.11.0",
     )
-
     go_repository(
         name = "com_github_russross_blackfriday",
         importpath = "github.com/russross/blackfriday",

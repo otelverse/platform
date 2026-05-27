@@ -19,6 +19,7 @@ go_test(
     srcs = ["storage_test.go"],
     embed = [":storage"],
     deps = [
+        "@com_github_stretchr_testify//require",
         "@com_github_stretchr_testify//require:go_default_library",  # keep
         "@com_github_testcontainers_testcontainers_go//:testcontainers-go",
         "@com_github_testcontainers_testcontainers_go//wait",

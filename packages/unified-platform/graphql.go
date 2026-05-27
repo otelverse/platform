@@ -117,6 +117,9 @@ func (r *GraphQLResolver) executeQuery(ctx context.Context, query string, vars m
 	if strings.Contains(query, "chaosBlastRadius") {
 		return r.resolveChaosBlastRadius(ctx, vars)
 	}
+	if strings.Contains(query, "agents") {
+		return r.resolveAgents(ctx, vars)
+	}
 
 	return nil, fmt.Errorf("unsupported query")
 }
@@ -866,4 +869,19 @@ func (r *GraphQLResolver) resolveApplyRecommendation(ctx context.Context, vars m
 	p, _ = r.pipelineStore.Update(pipelineID, input)
 
 	return map[string]interface{}{"applyRecommendation": pipelineToMap(p)}, nil
+}
+
+func (r *GraphQLResolver) resolveAgents(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	resp, err := http.Get("http://localhost:8082/v1/agents")
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch agents from control plane: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var agents []map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&agents); err != nil {
+		return nil, fmt.Errorf("failed to decode agents: %w", err)
+	}
+
+	return map[string]interface{}{"agents": agents}, nil
 }
