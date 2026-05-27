@@ -9,6 +9,8 @@ type Query {
   pipeline(id: ID!): Pipeline
   pipelineValidate(id: ID!): ValidationResult!
   pipelineExportYAML(id: ID!): String!
+  telemetryStats(startTime: DateTime!, endTime: DateTime!): TelemetryStats!
+  optimizationRecommendations(pipelineId: ID!, startTime: DateTime!, endTime: DateTime!): [OptimizationRecommendation!]!
 }
 
 type Mutation {
@@ -16,6 +18,7 @@ type Mutation {
   pipelineUpdate(id: ID!, input: PipelineInput!): Pipeline!
   pipelineDelete(id: ID!): Boolean!
   pipelineDeploy(id: ID!): DeployResult!
+  applyRecommendation(pipelineId: ID!, recommendationId: ID!): Pipeline!
 }
 
 type Pipeline {
@@ -51,6 +54,8 @@ enum NodeType {
   PROCESSOR_BATCH
   PROCESSOR_MEMORY_LIMITER
   PROCESSOR_TAIL_SAMPLING
+  PROCESSOR_ATTRIBUTES
+  PROCESSOR_PROBABILISTIC_SAMPLING
   EXPORTER_LOGGING
   EXPORTER_OTLP
 }
@@ -137,4 +142,34 @@ type Log {
   severity: String!
   body: String!
   attributes: [Attribute!]!
+}
+
+type TelemetryStats {
+  totalSpans: Int!
+  spansPerService: [ServiceSpans!]!
+  errorRate: Float!
+  averageLatency: Float!
+}
+
+type ServiceSpans {
+  serviceName: String!
+  spanCount: Int!
+  errorCount: Int!
+  averageDuration: Float!
+}
+
+type OptimizationRecommendation {
+  id: ID!
+  type: RecommendationType!
+  description: String!
+  affectedServices: [String!]!
+  proposedConfig: JSON!
+  potentialSavings: Float!
+  confidence: Float!
+}
+
+enum RecommendationType {
+  TAIL_SAMPLING
+  PII_REDACTION
+  PROBABILISTIC_SAMPLING
 }
