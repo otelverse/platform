@@ -1,0 +1,6 @@
+sh_test(
+    name = "compose_test",
+    srcs = ["test.sh"],
+    data = glob(["**/*"]),
+    tags = ["exclusive", "requires-docker"],
+)
