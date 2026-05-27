@@ -10828,7 +10828,7 @@ snapshots:
 
   '@docusaurus/react-loadable@6.0.0(react@19.2.6)':
     dependencies:
-      '@types/react': 18.3.29
+      '@types/react': 19.2.15
       react: 19.2.6
 
   '@docusaurus/theme-classic@3.10.1(@docusaurus/faster@3.10.1(@docusaurus/types@3.10.1(@swc/core@1.15.40)(postcss@8.5.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(postcss@8.5.15))(@rspack/core@1.7.11)(@swc/core@1.15.40)(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(typescript@6.0.3)':
@@ -13385,7 +13385,7 @@ snapshots:
   '@types/react-router@5.1.20':
     dependencies:
       '@types/history': 4.7.11
-      '@types/react': 18.3.29
+      '@types/react': 19.2.15
 
   '@types/react-window@2.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
