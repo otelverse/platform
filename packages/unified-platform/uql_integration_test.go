@@ -155,6 +155,86 @@ func TestUQLIntegration(t *testing.T) {
 			t.Errorf("expected default limit 100, got %d", query.Limit)
 		}
 	})
+	t.Run("UQL aggregation count by service", func(t *testing.T) {
+		parser := uql.NewParser(`traces | by service.name | count`)
+		query, err := parser.Parse()
+		if err != nil {
+			t.Fatalf("parse failed: %v", err)
+		}
+
+		sqlQuery, args, err := query.ToClickhouse()
+		if err != nil {
+			t.Fatalf("translation failed: %v", err)
+		}
+
+		rows, err := db.QueryContext(ctx, sqlQuery, args...)
+		if err != nil {
+			t.Fatalf("query failed: %v", err)
+		}
+		defer rows.Close()
+
+		var count int
+		for rows.Next() {
+			var svcName string
+			var val float64
+			if err := rows.Scan(&svcName, &val); err != nil {
+				t.Fatalf("scan failed: %v", err)
+			}
+			if svcName == "api-gateway" {
+				if val != 2 {
+					t.Errorf("expected 2 traces for api-gateway, got %v", val)
+				}
+			}
+			count++
+		}
+
+		if count == 0 {
+			t.Error("expected at least 1 aggregation row, got 0")
+		}
+	})
+
+	t.Run("UQL cross-signal join traces and logs", func(t *testing.T) {
+		parser := uql.NewParser(`traces | join logs on traceId | limit 10`)
+		query, err := parser.Parse()
+		if err != nil {
+			t.Fatalf("parse failed: %v", err)
+		}
+
+		sqlQuery, args, err := query.ToClickhouse()
+		if err != nil {
+			t.Fatalf("translation failed: %v", err)
+		}
+
+		rows, err := db.QueryContext(ctx, sqlQuery, args...)
+		if err != nil {
+			t.Fatalf("query failed: %v", err)
+		}
+		defer rows.Close()
+
+		var count int
+		for rows.Next() {
+			// Cols: t.TraceId, t.SpanId, t.ParentSpanId, t.OperationName, t.ServiceName, t.StartTime, t.Duration, t.StatusCode, t.StatusMessage, t.Attributes, t.ResourceAttributes, l.Timestamp, l.SeverityText, l.Body, l.LogAttributes
+			var traceId, spanId, opName, svcName, startTime string
+			var parentSpanID *string
+			var duration int64
+			var statusCode int32
+			var statusMessage, attrs, resourceAttrs *string
+			var logTs, logSev, logBody *string
+			var logAttrs *string
+			
+			if err := rows.Scan(&traceId, &spanId, &parentSpanID, &opName,
+				&svcName, &startTime, &duration, &statusCode,
+				&statusMessage, &attrs, &resourceAttrs,
+				&logTs, &logSev, &logBody, &logAttrs); err != nil {
+				t.Fatalf("scan failed: %v", err)
+			}
+			count++
+		}
+
+		if count == 0 {
+			t.Error("expected at least 1 joined row, got 0")
+		}
+	})
 }
 
 func seedTestData(ctx context.Context, db *sql.DB) error {
@@ -190,6 +270,27 @@ func seedTestData(ctx context.Context, db *sql.DB) error {
 			startTime, tr.duration, tr.statusCode, attrs, resourceAttrs,
 		); err != nil {
 			return fmt.Errorf("insert trace %s: %w", tr.spanID, err)
+		}
+	}
+	
+	insertLog := `
+		INSERT INTO otel_logs (Timestamp, TraceId, SpanId, SeverityText, Body, ResourceAttributes, LogAttributes)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+	`
+	
+	logs := []struct {
+		timestamp, traceID, spanID, severity, body, resAttrs, logAttrs string
+	}{
+		{"2024-01-01T00:00:00.005Z", "trace-1", "span-1", "INFO", "Handling GET /api/users", `{"service.name":"api-gateway"}`, `{}`},
+		{"2024-01-01T00:00:00.015Z", "trace-1", "span-2", "DEBUG", "Executing SELECT * FROM users", `{"service.name":"postgres"}`, `{}`},
+		{"2024-01-01T00:00:02.050Z", "trace-3", "span-4", "ERROR", "Payment timeout error", `{"service.name":"payment"}`, `{"error.type":"timeout"}`},
+	}
+	
+	for _, l := range logs {
+		if _, err := db.ExecContext(ctx, insertLog,
+			l.timestamp, l.traceID, l.spanID, l.severity, l.body, l.resAttrs, l.logAttrs,
+		); err != nil {
+			return fmt.Errorf("insert log: %w", err)
 		}
 	}
 
