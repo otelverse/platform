@@ -115,6 +115,16 @@ The Pipeline Builder is a visual editor for OTel Collector pipelines, accessible
 - **YAML Export**: Generate valid OTel Collector `config.yaml` for download
 - **One-Click Deploy**: Deploy to local Docker as a running collector container
 
+### Pipeline Optimizer
+
+The Pipeline Optimizer is a heuristic engine that analyzes recent telemetry data stored in ClickHouse to generate smart recommendations for your pipeline:
+- **Tail Sampling for Errors**: Automatically recommends a `tail_sampling` processor if high error rates are detected to ensure 100% of failed traces are kept while probabilistically downsampling healthy ones.
+- **Latency-based Sampling**: Keeps high latency traces for performance optimization when a service exceeds a certain average duration threshold.
+- **Low-value Downsampling**: Aggressively downsamples high-volume services that have low errors and low latencies.
+- **PII Redaction**: Scans span attributes and generates an attribute hashing processor recommendation if emails, SSNs, or other sensitive patterns are detected.
+
+You can run an analysis from the **Optimize** tab within the Pipeline Builder and apply recommendations with a single click.
+
 ### GraphQL API
 
 ```graphql
