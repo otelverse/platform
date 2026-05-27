@@ -19,3 +19,4 @@ export {
 } from './useOptimizer'
 export { useSessionReplay, useSessionList } from './useSessionReplay'
 export * from './useChaos';
+export * from './useAlerts';
