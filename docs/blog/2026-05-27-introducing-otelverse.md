@@ -1,7 +1,9 @@
 ---
 slug: introducing-otelverse
 title: 'Introducing OTelVerse: The OpenTelemetry Universe'
-authors: [subesh]
+authors:
+  - name: Subesh
+    title: Creator of OTelVerse
 tags: [opentelemetry, observability, release]
 ---
 
