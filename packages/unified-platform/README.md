@@ -155,9 +155,16 @@ mutation { pipelineDeploy(id: "default") { containerId status } }
 - Exporters cannot have outgoing edges
 - OTLP receiver requires `endpoint` property
 
-## Local Development
+## Quick Start / Integration Kits
 
-### Prerequisites
+The easiest way to get started with OTelVerse is using our drop-in integration kits.
+
+- **[Docker Compose Kit](../integration-kits/compose/otelverse-kit/README.md)**: A one-command local environment that spins up the entire stack along with instrumented sample React and Express applications. Highly recommended for first-time evaluation.
+- **[Kubernetes Helm Kit](../integration-kits/helm/otelverse-kit/README.md)**: A cloud-native demo environment ready to be deployed to a `kind` cluster.
+
+### Manual Local Development
+
+#### Prerequisites
 
 - Go 1.25+
 - Node.js 20+
