@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "storage",
@@ -14,14 +14,12 @@ alias(
     visibility = ["//packages/session-replay/service:__subpackages__"],
 )
 
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
-
 go_test(
     name = "storage_test",
     srcs = ["storage_test.go"],
     embed = [":storage"],
     deps = [
-        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
         "@com_github_testcontainers_testcontainers_go//:testcontainers-go",
         "@com_github_testcontainers_testcontainers_go//wait",
     ],
