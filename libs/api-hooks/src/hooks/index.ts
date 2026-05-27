@@ -12,3 +12,8 @@ export {
   useExportPipelineYAML,
   useDeployPipeline,
 } from './usePipelines'
+export {
+  useTelemetryStats,
+  useOptimizationRecommendations,
+  useApplyRecommendation,
+} from './useOptimizer'

@@ -12,6 +12,9 @@ export {
   useValidatePipeline,
   useExportPipelineYAML,
   useDeployPipeline,
+  useTelemetryStats,
+  useOptimizationRecommendations,
+  useApplyRecommendation,
 } from './hooks'
 export type {
   Trace,
