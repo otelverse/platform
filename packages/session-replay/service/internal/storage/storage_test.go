@@ -47,14 +47,14 @@ func TestStorageIntegration(t *testing.T) {
 		Events:    json.RawMessage(`[{"type": 1}]`),
 		Timestamp: 1600000000000,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	events, err := store.GetEvents("session-1")
-	assert.NoError(t, err)
-	assert.Len(t, events, 1)
+	require.NoError(t, err)
+	require.Len(t, events, 1)
 
 	sessions, err := store.ListSessions(10)
-	assert.NoError(t, err)
-	assert.Len(t, sessions, 1)
-	assert.Equal(t, "session-1", sessions[0].SessionID)
+	require.NoError(t, err)
+	require.Len(t, sessions, 1)
+	require.Equal(t, "session-1", sessions[0].SessionID)
 }
