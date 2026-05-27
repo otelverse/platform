@@ -111,3 +111,48 @@ func TestParseSingleQuote(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "my-service", q.Filters[0].Value)
 }
+
+func TestParseAggregation(t *testing.T) {
+	q, err := NewParser(`traces | where service.name = 'api' | by span.name | count`).Parse()
+	require.NoError(t, err)
+	assert.Equal(t, QueryTypeTraces, q.Type)
+	assert.NotNil(t, q.Aggregation)
+	assert.Equal(t, "span.name", q.Aggregation.GroupByField)
+	assert.Len(t, q.Aggregation.Functions, 1)
+	assert.Equal(t, "count", q.Aggregation.Functions[0].Name)
+}
+
+func TestParseAggregationMultiple(t *testing.T) {
+	q, err := NewParser(`traces | by service.name | avg(duration), p95(duration)`).Parse()
+	require.NoError(t, err)
+	assert.NotNil(t, q.Aggregation)
+	assert.Equal(t, "service.name", q.Aggregation.GroupByField)
+	assert.Len(t, q.Aggregation.Functions, 2)
+	assert.Equal(t, "avg", q.Aggregation.Functions[0].Name)
+	assert.Equal(t, "duration", q.Aggregation.Functions[0].Field)
+	assert.Equal(t, "p95", q.Aggregation.Functions[1].Name)
+	assert.Equal(t, "duration", q.Aggregation.Functions[1].Field)
+}
+
+func TestParseAggregationNoBy(t *testing.T) {
+	q, err := NewParser(`traces | p95(duration)`).Parse()
+	require.NoError(t, err)
+	assert.NotNil(t, q.Aggregation)
+	assert.Empty(t, q.Aggregation.GroupByField)
+	assert.Len(t, q.Aggregation.Functions, 1)
+	assert.Equal(t, "p95", q.Aggregation.Functions[0].Name)
+	assert.Equal(t, "duration", q.Aggregation.Functions[0].Field)
+}
+
+func TestParseJoin(t *testing.T) {
+	q, err := NewParser(`traces | join logs on traceId`).Parse()
+	require.NoError(t, err)
+	assert.NotNil(t, q.Join)
+	assert.Equal(t, QueryTypeLogs, q.Join.TargetSignal)
+	assert.Equal(t, "traceId", q.Join.OnField)
+}
+
+func TestParseInvalidAggregationSyntax(t *testing.T) {
+	_, err := NewParser(`traces | by span.name | avg`).Parse()
+	assert.Error(t, err)
+}
