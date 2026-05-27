@@ -115,6 +115,37 @@ The Pipeline Builder is a visual editor for OTel Collector pipelines, accessible
 - **YAML Export**: Generate valid OTel Collector `config.yaml` for download
 - **One-Click Deploy**: Deploy to local Docker as a running collector container
 
+## Alerting Engine
+
+The Alerting Engine evaluates UQL queries on a schedule and sends notifications when conditions are met.
+
+### Features
+- **Threshold Alerts**: Trigger alerts when UQL query results meet conditions (e.g., `COUNT_GT 5`).
+- **Interval Evaluation**: Evaluate rules periodically (e.g., every 60 seconds) via a background engine.
+- **Notification Channels**: Support for Slack webhooks, generic webhooks, and email via SMTP.
+- **Silence Rules**: Suppress notifications during specific windows based on label matchers.
+- **Alert History**: Track evaluation history, state transitions (`OK` <-> `ALERTING`), and notification status.
+
+### Example GraphQL Queries
+
+```graphql
+# Create an alert rule
+mutation {
+  createAlertRule(input: {
+    name: "High API Errors",
+    description: "Traces with error status",
+    query: "traces | where status.code != \\"0\\"",
+    intervalSeconds: 60,
+    condition: { type: "COUNT_GT", threshold: 10 }
+  }) { id name }
+}
+
+# List active alerts
+query {
+  alertRules { id name state lastEvaluatedAt }
+}
+```
+
 ### Pipeline Optimizer
 
 The Pipeline Optimizer is a heuristic engine that analyzes recent telemetry data stored in ClickHouse to generate smart recommendations for your pipeline:

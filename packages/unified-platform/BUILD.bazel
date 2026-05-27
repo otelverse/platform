@@ -41,6 +41,7 @@ go_test(
     srcs = glob(["*_test.go"]),
     embed = [":platform_lib"],
     deps = [
+        "//packages/unified-platform/alerting",
         "@com_github_clickhouse_clickhouse_go_v2//:go_default_library",
         "@com_github_testcontainers_testcontainers_go//:go_default_library",
         "@com_github_testcontainers_testcontainers_go//wait:go_default_library",

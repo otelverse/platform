@@ -56,7 +56,7 @@ func TestEvaluator(t *testing.T) {
 	ctx := context.Background()
 
 	// Evaluate manually
-	evaluator.evaluateAll(ctx)
+	evaluator.EvaluateAll(ctx)
 
 	// Check if state changed to ALERTING
 	updatedRule, _ := store.GetRule(rule.ID)
@@ -88,7 +88,7 @@ func TestEvaluator(t *testing.T) {
 	store.UpdateRule(updatedRule.ID, *updatedRule)
 
 	// Evaluate again
-	evaluator.evaluateAll(ctx)
+	evaluator.EvaluateAll(ctx)
 
 	// Check if state changed to OK
 	finalRule, _ := store.GetRule(rule.ID)
@@ -132,7 +132,7 @@ func TestEvaluatorInterval(t *testing.T) {
 	ctx := context.Background()
 
 	// 1st Eval
-	evaluator.evaluateAll(ctx)
+	evaluator.EvaluateAll(ctx)
 	if notifier.sent != 0 {
 		// Wait, we didn't add channels so notifier is 0, but rule state changes
 	}
@@ -144,7 +144,7 @@ func TestEvaluatorInterval(t *testing.T) {
 
 	// Set executor to 2, it should recover to OK, BUT interval is not met
 	executor.count = 2
-	evaluator.evaluateAll(ctx)
+	evaluator.EvaluateAll(ctx)
 	
 	// Rule should STILL be ALERTING
 	updatedRule2, _ := store.GetRule(rule.ID)
@@ -157,7 +157,7 @@ func TestEvaluatorInterval(t *testing.T) {
 	updatedRule2.LastEvaluatedAt = &past
 	store.UpdateRule(updatedRule2.ID, *updatedRule2)
 
-	evaluator.evaluateAll(ctx)
+	evaluator.EvaluateAll(ctx)
 
 	// Now it should be OK
 	updatedRule3, _ := store.GetRule(rule.ID)

@@ -44,13 +44,13 @@ func (e *Evaluator) Start(ctx context.Context) {
 				ticker.Stop()
 				return
 			case <-ticker.C:
-				e.evaluateAll(ctx)
+				e.EvaluateAll(ctx)
 			}
 		}
 	}()
 }
 
-func (e *Evaluator) evaluateAll(ctx context.Context) {
+func (e *Evaluator) EvaluateAll(ctx context.Context) {
 	rules := e.store.ListRules()
 	now := time.Now()
 
