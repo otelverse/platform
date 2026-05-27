@@ -14,7 +14,7 @@ services:
     networks:
       - otelverse-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8123/ping"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8123/ping"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -29,7 +29,7 @@ services:
     networks:
       - otelverse-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8428/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8428/health"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -40,7 +40,7 @@ services:
       - "${OTLP_GRPC_PORT}:4317"
       - "${OTLP_HTTP_PORT}:4318"
     volumes:
-      - ../../../../unified-platform/docker/otel-collector-config.yml:/etc/otel-collector-config.yml
+      - ../../../unified-platform/docker/otel-collector-config.yml:/etc/otel-collector-config.yml
     command: ["--config=/etc/otel-collector-config.yml"]
     networks:
       - otelverse-network
@@ -52,7 +52,7 @@ services:
 
   platform:
     build:
-      context: ../../../../unified-platform
+      context: ../../../unified-platform
       dockerfile: docker/Dockerfile
     ports:
       - "${PLATFORM_PORT}:8080"
