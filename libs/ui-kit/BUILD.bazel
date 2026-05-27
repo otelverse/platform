@@ -8,15 +8,18 @@ filegroup(
 sh_test(
     name = "unit_test",
     srcs = ["run_tests.sh"],
-    data = glob([
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "dist/**",
-        "*.json",
-        "*.js",
-        "*.ts",
-        "*.css",
-    ], allow_empty = True),
+    data = glob(
+        [
+            "src/**/*.ts",
+            "src/**/*.tsx",
+            "dist/**",
+            "*.json",
+            "*.js",
+            "*.ts",
+            "*.css",
+        ],
+        allow_empty = True,
+    ),
 )
 
 sh_binary(
