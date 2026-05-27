@@ -8,6 +8,8 @@ import {
   useValidatePipeline,
   useExportPipelineYAML,
   useDeployPipeline,
+  useOptimizationRecommendations,
+  useApplyRecommendation,
 } from '@otelverse/api-hooks'
 import type {
   PipelineNode,
@@ -33,6 +35,9 @@ export default function PipelineBuilderPage() {
   const [deployResult, setDeployResult] = useState<string | null>(null)
   const [validationResult, setValidationResult] = useState<{ valid: boolean; errors: string[] } | null>(null)
   const [nodeForm, setNodeForm] = useState<NodeFormData>({ label: '' })
+  const [activeTab, setActiveTab] = useState<'properties' | 'optimize'>('properties')
+  const [timeRange, setTimeRange] = useState('24h') // 1h, 24h, 7d
+  const [analysisRan, setAnalysisRan] = useState(false)
 
   const { data: pipelinesData, isLoading: pipelinesLoading } = usePipelines()
   const { data: pipelineData } = usePipeline(selectedPipelineId)
@@ -42,6 +47,20 @@ export default function PipelineBuilderPage() {
   const validatePipeline = useValidatePipeline()
   const exportYAMLMutation = useExportPipelineYAML()
   const deployPipeline = useDeployPipeline()
+  
+  // Calculate time range
+  const now = new Date()
+  let startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
+  if (timeRange === '1h') startTime = new Date(now.getTime() - 60 * 60 * 1000).toISOString()
+  if (timeRange === '7d') startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const endTime = now.toISOString()
+
+  const { data: recsData, isLoading: analyzing, refetch: runAnalysis } = useOptimizationRecommendations(
+    selectedPipelineId || '',
+    startTime,
+    endTime
+  )
+  const applyRec = useApplyRecommendation()
 
   const pipelines = pipelinesData?.pipelines ?? []
   const activePipeline = pipelineData?.pipeline ?? null
@@ -249,13 +268,47 @@ export default function PipelineBuilderPage() {
 
       <div
         style={{
-          width: 280,
+          width: 320,
           borderLeft: '1px solid var(--border-default)',
-          padding: 16,
-          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        {selectedNode ? (
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--border-default)' }}>
+          <button
+            style={{
+              flex: 1,
+              padding: '12px 16px',
+              border: 'none',
+              background: activeTab === 'properties' ? 'var(--bg-elevated)' : 'transparent',
+              borderBottom: activeTab === 'properties' ? '2px solid var(--primary)' : '2px solid transparent',
+              cursor: 'pointer',
+              fontWeight: activeTab === 'properties' ? 600 : 400,
+            }}
+            onClick={() => setActiveTab('properties')}
+          >
+            Properties
+          </button>
+          <button
+            style={{
+              flex: 1,
+              padding: '12px 16px',
+              border: 'none',
+              background: activeTab === 'optimize' ? 'var(--bg-elevated)' : 'transparent',
+              borderBottom: activeTab === 'optimize' ? '2px solid var(--primary)' : '2px solid transparent',
+              cursor: 'pointer',
+              fontWeight: activeTab === 'optimize' ? 600 : 400,
+            }}
+            onClick={() => setActiveTab('optimize')}
+          >
+            Optimize
+          </button>
+        </div>
+
+        <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
+          {activeTab === 'properties' && (
+            <>
+              {selectedNode ? (
           <Card title="Node Properties">
             <div style={{ marginBottom: 12 }}>
               <label style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>Label</label>
@@ -286,30 +339,118 @@ export default function PipelineBuilderPage() {
           </div>
         )}
 
-        {showExport && exportYaml && (
-          <div style={{ marginTop: 16 }}>
-            <Card title="YAML Export">
-              <CodeBlock code={exportYaml} language="yaml" />
-              <div style={{ marginTop: 8 }}>
-                <Button
-                  variant="primary"
-                  size="sm"
+              {showExport && exportYaml && (
+                <div style={{ marginTop: 16 }}>
+                  <Card title="YAML Export">
+                    <CodeBlock code={exportYaml} language="yaml" />
+                    <div style={{ marginTop: 8 }}>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => {
+                          const blob = new Blob([exportYaml], { type: 'text/yaml' })
+                          const url = URL.createObjectURL(blob)
+                          const a = document.createElement('a')
+                          a.href = url
+                          a.download = 'otel-collector-config.yaml'
+                          a.click()
+                          URL.revokeObjectURL(url)
+                        }}
+                      >
+                        Download
+                      </Button>
+                    </div>
+                  </Card>
+                </div>
+              )}
+            </>
+          )}
+
+          {activeTab === 'optimize' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <Card title="Pipeline Optimizer">
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>Time Range</label>
+                  <select
+                    value={timeRange}
+                    onChange={(e) => setTimeRange(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      borderRadius: '4px',
+                      border: '1px solid var(--border-default)',
+                      background: 'var(--bg-surface)',
+                      color: 'var(--text-primary)',
+                    }}
+                  >
+                    <option value="1h">Last 1 Hour</option>
+                    <option value="24h">Last 24 Hours</option>
+                    <option value="7d">Last 7 Days</option>
+                  </select>
+                </div>
+                <Button 
+                  variant="primary" 
+                  style={{ width: '100%' }}
+                  disabled={analyzing || !selectedPipelineId}
                   onClick={() => {
-                    const blob = new Blob([exportYaml], { type: 'text/yaml' })
-                    const url = URL.createObjectURL(blob)
-                    const a = document.createElement('a')
-                    a.href = url
-                    a.download = 'otel-collector-config.yaml'
-                    a.click()
-                    URL.revokeObjectURL(url)
+                    setAnalysisRan(true)
+                    runAnalysis()
                   }}
                 >
-                  Download
+                  {analyzing ? <Spinner /> : 'Analyze Telemetry'}
                 </Button>
-              </div>
-            </Card>
-          </div>
-        )}
+              </Card>
+
+              {analysisRan && !analyzing && recsData?.length === 0 && (
+                <div style={{ padding: 16, textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  No optimizations found. Your pipeline is looking good!
+                </div>
+              )}
+
+              {recsData?.map((rec) => (
+                <Card key={rec.id} title={
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {rec.type === 'TAIL_SAMPLING' && '🎯'}
+                    {rec.type === 'PII_REDACTION' && '🛡️'}
+                    {rec.type === 'PROBABILISTIC_SAMPLING' && '🎲'}
+                    <span>{rec.type.replace(/_/g, ' ')}</span>
+                  </div>
+                }>
+                  <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 12px 0' }}>
+                    {rec.description}
+                  </p>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+                    {rec.affectedServices.map(svc => (
+                      <span key={svc} style={{ 
+                        fontSize: 11, padding: '2px 6px', borderRadius: 4, 
+                        background: 'var(--bg-surface)', border: '1px solid var(--border-default)'
+                      }}>
+                        {svc}
+                      </span>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12 }}>
+                    <span style={{ color: 'var(--success)', fontWeight: 500 }}>
+                      ~{rec.potentialSavings}% savings
+                    </span>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      disabled={applyRec.isPending}
+                      onClick={() => {
+                        if (selectedPipelineId) {
+                          applyRec.mutate({ pipelineId: selectedPipelineId, recommendationId: rec.id })
+                        }
+                      }}
+                    >
+                      Apply
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
