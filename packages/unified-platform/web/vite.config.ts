@@ -9,4 +9,16 @@ export default defineConfig({
       '/graphql': 'http://localhost:8080',
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'react-flow': ['reactflow'],
+          'rrweb': ['rrweb-player', 'rrweb'],
+          'ui-kit': ['@otelverse/ui-kit', 'lucide-react']
+        }
+      }
+    }
+  }
 })

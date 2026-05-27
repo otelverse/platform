@@ -1,11 +1,14 @@
+import { Suspense, lazy } from 'react'
 import { Routes, Route, Navigate, Link } from 'react-router-dom'
 import { Layout } from '@otelverse/ui-kit'
 import TraceListPage from './pages/TraceListPage'
 import TraceDetailPage from './pages/TraceDetailPage'
-import PipelineBuilderPage from './pages/PipelineBuilder/PipelineBuilderPage'
-import { ChaosExperimentsPage } from './pages/Chaos/ChaosExperimentsPage'
-import { ChaosExperimentDetailPage } from './pages/Chaos/ChaosExperimentDetailPage'
-import { ChaosExperimentCreateForm } from './pages/Chaos/ChaosExperimentCreateForm'
+
+const PipelineBuilderPage = lazy(() => import('./pages/PipelineBuilder/PipelineBuilderPage'))
+const SessionReplayPage = lazy(() => import('./pages/SessionReplayPage').then(m => ({ default: m.SessionReplayPage })))
+const ChaosExperimentsPage = lazy(() => import('./pages/Chaos/ChaosExperimentsPage').then(m => ({ default: m.ChaosExperimentsPage })))
+const ChaosExperimentDetailPage = lazy(() => import('./pages/Chaos/ChaosExperimentDetailPage').then(m => ({ default: m.ChaosExperimentDetailPage })))
+const ChaosExperimentCreateForm = lazy(() => import('./pages/Chaos/ChaosExperimentCreateForm').then(m => ({ default: m.ChaosExperimentCreateForm })))
 
 function SidebarNav() {
   return (
@@ -35,17 +38,22 @@ function SidebarNav() {
 export default function App() {
   return (
     <Layout sidebar={<SidebarNav />}>
-      <Routes>
-        <Route path="/" element={<Navigate to="/traces" replace />} />
-        <Route path="/traces" element={<TraceListPage />} />
-        <Route path="/traces/:id" element={<TraceDetailPage />} />
-        <Route path="/logs" element={<div>Logs page coming soon</div>} />
-        <Route path="/metrics" element={<div>Metrics page coming soon</div>} />
-        <Route path="/pipelines" element={<PipelineBuilderPage />} />
-        <Route path="/chaos" element={<ChaosExperimentsPage />} />
-        <Route path="/chaos/new" element={<ChaosExperimentCreateForm />} />
-        <Route path="/chaos/:id" element={<ChaosExperimentDetailPage />} />
-      </Routes>
+      <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading module...</div>}>
+        <Routes>
+          <Route path="/" element={<Navigate to="/traces" replace />} />
+          <Route path="/traces" element={<TraceListPage />} />
+          <Route path="/traces/:id" element={<TraceDetailPage />} />
+          <Route path="/logs" element={<div>Logs page coming soon</div>} />
+          <Route path="/metrics" element={<div>Metrics page coming soon</div>} />
+          <Route path="/pipelines" element={<PipelineBuilderPage />} />
+          <Route path="/pipelines/new" element={<PipelineBuilderPage />} />
+          <Route path="/pipelines/:id" element={<PipelineBuilderPage />} />
+          <Route path="/replays" element={<SessionReplayPage />} />
+          <Route path="/chaos" element={<ChaosExperimentsPage />} />
+          <Route path="/chaos/new" element={<ChaosExperimentCreateForm />} />
+          <Route path="/chaos/:id" element={<ChaosExperimentDetailPage />} />
+        </Routes>
+      </Suspense>
     </Layout>
   )
 }
