@@ -16,6 +16,23 @@ Welcome to the **OTelVerse Platform** monorepo! This repository contains the bac
 2. Clone the repo: `git clone https://github.com/otelverse/platform.git`
 3. Run all tests: `bazel test //...`
 
+## Unified Query Language (UQL)
+
+UQL is our custom query language designed specifically for OpenTelemetry data. It supports advanced filtering, cross-signal joins, and aggregations.
+
+### Examples
+
+**Search traces:**
+`traces | where service.name = "api-gateway" | limit 10`
+
+**Aggregation:**
+`traces | by service.name | avg(duration)`
+
+**Cross-signal joins:**
+`traces | join logs on traceId`
+
+You can use the **Visual Query Builder** in the web interface to construct these queries dynamically!
+
 ## Packages
 
 - `libs/ui-kit` — Shared React component library with design tokens
