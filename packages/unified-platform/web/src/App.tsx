@@ -20,6 +20,9 @@ const AlertHistoryPage = lazy(() => import('./pages/Alerts/AlertHistoryPage').th
 const DashboardPage = lazy(() => import('./pages/Dashboard/DashboardPage').then(m => ({ default: m.DashboardPage })))
 const LogsPage = lazy(() => import('./pages/Logs/LogsPage').then(m => ({ default: m.LogsPage })))
 
+// Robotics
+const RoboticsDashboardPage = lazy(() => import('./pages/RoboticsDashboardPage').then(m => ({ default: m.RoboticsDashboardPage })))
+
 function SidebarNav() {
   return (
     <nav>
@@ -49,6 +52,9 @@ function SidebarNav() {
         <li className="mb-2">
           <Link to="/edge" className="text-blue-600 hover:underline">Edge Agents</Link>
         </li>
+        <li className="mb-2">
+          <Link to="/robotics" className="text-blue-600 hover:underline">Robotics SDK</Link>
+        </li>
       </ul>
     </nav>
   )
@@ -75,6 +81,7 @@ export default function App() {
           <Route path="/chaos/new" element={<ChaosExperimentCreateForm />} />
           <Route path="/chaos/:id" element={<ChaosExperimentDetailPage />} />
           <Route path="/edge" element={<EdgeAgentListPage />} />
+          <Route path="/robotics" element={<RoboticsDashboardPage />} />
         </Routes>
       </Suspense>
     </Layout>
