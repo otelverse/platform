@@ -1,0 +1,63 @@
+name: Dev Desktop CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'packages/dev-desktop/**'
+      - '.github/workflows/dev-desktop.yml'
+  pull_request:
+    paths:
+      - 'packages/dev-desktop/**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'packages/dev-desktop/ui/package-lock.json'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+
+      - name: Install system dependencies for Tauri
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Build Go Platform
+        working-directory: packages/dev-desktop/platform
+        run: |
+          mkdir -p ../dist
+          CGO_ENABLED=1 go build -tags duckdb -o ../dist/platform .
+
+      - name: Test Go Platform
+        working-directory: packages/dev-desktop/platform
+        run: CGO_ENABLED=1 go test -tags duckdb ./...
+
+      - name: Build React UI
+        working-directory: packages/dev-desktop/ui
+        run: |
+          npm ci
+          npm run build
+
+      - name: Check Rust Tauri App
+        working-directory: packages/dev-desktop/src-tauri
+        run: cargo check
+
+      - name: Test Rust Tauri App
+        working-directory: packages/dev-desktop/src-tauri
+        run: cargo test

@@ -1,0 +1,233 @@
+scalar JSON
+
+type Query {
+  traces(serviceName: String, operationName: String, startTime: DateTime!, endTime: DateTime!, limit: Int = 100): [Trace!]!
+  trace(id: String!): Trace
+  logs(severity: String, message: String, startTime: DateTime!, endTime: DateTime!, limit: Int = 100): [Log!]!
+  uql(query: String!): UQLResult!
+  pipelines: [Pipeline!]!
+  pipeline(id: ID!): Pipeline
+  pipelineValidate(id: ID!): ValidationResult!
+  pipelineExportYAML(id: ID!): String!
+  telemetryStats(startTime: DateTime!, endTime: DateTime!): TelemetryStats!
+  optimizationRecommendations(pipelineId: ID!, startTime: DateTime!, endTime: DateTime!): [OptimizationRecommendation!]!
+}
+
+type Mutation {
+  pipelineCreate(input: PipelineInput!): Pipeline!
+  pipelineUpdate(id: ID!, input: PipelineInput!): Pipeline!
+  pipelineDelete(id: ID!): Boolean!
+  pipelineDeploy(id: ID!): DeployResult!
+  applyRecommendation(pipelineId: ID!, recommendationId: ID!): Pipeline!
+}
+
+type Pipeline {
+  id: ID!
+  name: String!
+  nodes: [PipelineNode!]!
+  edges: [PipelineEdge!]!
+}
+
+type PipelineNode {
+  id: ID!
+  type: NodeType!
+  label: String!
+  properties: JSON!
+  position: Position!
+}
+
+type Position {
+  x: Float!
+  y: Float!
+}
+
+type PipelineEdge {
+  id: ID!
+  source: ID!
+  target: ID!
+  sourceHandle: String
+  targetHandle: String
+}
+
+enum NodeType {
+  RECEIVER_OTLP
+  PROCESSOR_BATCH
+  PROCESSOR_MEMORY_LIMITER
+  PROCESSOR_TAIL_SAMPLING
+  PROCESSOR_ATTRIBUTES
+  PROCESSOR_PROBABILISTIC_SAMPLING
+  EXPORTER_LOGGING
+  EXPORTER_OTLP
+}
+
+input PipelineInput {
+  name: String!
+  nodes: [PipelineNodeInput!]!
+  edges: [PipelineEdgeInput!]!
+}
+
+input PipelineNodeInput {
+  id: ID!
+  type: NodeType!
+  label: String!
+  properties: JSON!
+  position: PositionInput!
+}
+
+input PositionInput {
+  x: Float!
+  y: Float!
+}
+
+input PipelineEdgeInput {
+  id: ID!
+  source: ID!
+  target: ID!
+  sourceHandle: String
+  targetHandle: String
+}
+
+type ValidationResult {
+  valid: Boolean!
+  errors: [String!]!
+}
+
+type DeployResult {
+  containerId: String!
+  status: String!
+}
+
+union UQLResult = TraceList | LogList
+
+type TraceList {
+  traces: [Trace!]!
+}
+
+type LogList {
+  logs: [Log!]!
+}
+
+scalar DateTime
+
+type Trace {
+  traceId: String!
+  spans: [Span!]!
+}
+
+type Span {
+  spanId: String!
+  parentSpanId: String
+  operationName: String!
+  serviceName: String!
+  startTime: String!
+  duration: Int!
+  statusCode: Int!
+  attributes: [Attribute!]!
+  events: [Event!]!
+}
+
+type Attribute {
+  key: String!
+  value: String!
+}
+
+type Event {
+  name: String!
+  timestamp: String!
+  attributes: [Attribute!]!
+}
+
+type Log {
+  timestamp: String!
+  severity: String!
+  body: String!
+  attributes: [Attribute!]!
+}
+
+type TelemetryStats {
+  totalSpans: Int!
+  spansPerService: [ServiceSpans!]!
+  errorRate: Float!
+  averageLatency: Float!
+}
+
+type ServiceSpans {
+  serviceName: String!
+  spanCount: Int!
+  errorCount: Int!
+  averageDuration: Float!
+}
+
+type OptimizationRecommendation {
+  id: ID!
+  type: RecommendationType!
+  description: String!
+  affectedServices: [String!]!
+  proposedConfig: JSON!
+  potentialSavings: Float!
+  confidence: Float!
+}
+
+enum RecommendationType {
+  TAIL_SAMPLING
+  PII_REDACTION
+  PROBABILISTIC_SAMPLING
+}
+
+type ChaosExperiment {
+  id: ID!
+  name: String!
+  targetService: String!
+  targetSpanName: String
+  faultType: FaultType!
+  config: JSON!
+  status: ExperimentStatus!
+  startTime: DateTime!
+  endTime: DateTime
+  creator: String!
+}
+
+enum FaultType {
+  LATENCY
+  ERROR
+}
+
+enum ExperimentStatus {
+  SCHEDULED
+  RUNNING
+  COMPLETED
+  CANCELLED
+}
+
+input ChaosExperimentInput {
+  name: String!
+  targetService: String!
+  targetSpanName: String
+  faultType: FaultType!
+  config: JSON!
+}
+
+type BlastRadiusResult {
+  affectedServices: [AffectedService!]!
+  totalAffectedSpans: Int!
+  averageLatencyIncrease: Float!
+}
+
+type AffectedService {
+  serviceName: String!
+  spanCount: Int!
+  errorCount: Int!
+  latencyIncreasePct: Float!
+}
+
+extend type Query {
+  chaosExperiments: [ChaosExperiment!]!
+  chaosExperiment(id: ID!): ChaosExperiment
+  chaosBlastRadius(experimentId: ID!): BlastRadiusResult!
+}
+
+extend type Mutation {
+  chaosCreateExperiment(input: ChaosExperimentInput!): ChaosExperiment!
+  chaosStartExperiment(id: ID!): ChaosExperiment!
+  chaosCancelExperiment(id: ID!): ChaosExperiment!
+}

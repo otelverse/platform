@@ -1,0 +1,5 @@
+export const onLCP = jest.fn()
+export const onCLS = jest.fn()
+export const onFCP = jest.fn()
+export const onTTFB = jest.fn()
+export const onINP = jest.fn()

@@ -1,0 +1,24 @@
+{
+  "name": "@otelverse/session-replay-recorder",
+  "version": "0.1.0",
+  "description": "Browser session recorder for OTelVerse",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "dependencies": {
+    "rrweb": "^2.0.0-alpha.11",
+    "rrweb-snapshot": "^2.0.0-alpha.11"
+  },
+  "peerDependencies": {
+    "@otelverse/web": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "jest": "^29.5.0",
+    "@types/jest": "^29.5.0",
+    "ts-jest": "^29.1.0"
+  }
+}

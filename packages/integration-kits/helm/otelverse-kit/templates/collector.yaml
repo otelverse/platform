@@ -1,0 +1,90 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-collector-config
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: "0.0.0.0:4317"
+          http:
+            endpoint: "0.0.0.0:4318"
+            cors:
+              allowed_origins:
+                - "*"
+
+    processors:
+      batch:
+
+    exporters:
+      otlp:
+        endpoint: "{{ .Release.Name }}-platform:4317"
+        tls:
+          insecure: true
+      prometheusremotewrite:
+        endpoint: "http://{{ .Release.Name }}-victoriametrics:8428/api/v1/write"
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp]
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [prometheusremotewrite]
+        logs:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: collector
+  template:
+    metadata:
+      labels:
+        app: collector
+    spec:
+      containers:
+        - name: collector
+          image: "{{ .Values.collector.image }}:{{ .Values.collector.tag }}"
+          command:
+            - "--config=/conf/config.yaml"
+          ports:
+            - containerPort: 4317
+            - containerPort: 4318
+          volumeMounts:
+            - name: collector-config-volume
+              mountPath: /conf
+      volumes:
+        - name: collector-config-volume
+          configMap:
+            name: {{ .Release.Name }}-collector-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-collector
+spec:
+  ports:
+    - port: 4317
+      targetPort: 4317
+      protocol: TCP
+      name: grpc
+    - port: 4318
+      targetPort: 4318
+      protocol: TCP
+      name: http
+  selector:
+    app: collector

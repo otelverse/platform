@@ -1,0 +1,257 @@
+Starting Docker Compose kit...
+time="2026-05-27T07:13:36+05:30" level=warning msg="/home/subesh/Startup_Projects/OtelVerse/platform/packages/integration-kits/compose/otelverse-kit/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.86kB done
+#1 DONE 0.0s
+
+#2 [platform internal] load build definition from Dockerfile
+#2 transferring dockerfile:
+#2 transferring dockerfile: 379B done
+#2 DONE 0.4s
+
+#3 [express-app internal] load build definition from Dockerfile
+#3 transferring dockerfile: 216B done
+#3 DONE 0.8s
+
+#4 [platform internal] load metadata for docker.io/library/alpine:3.19
+#4 ...
+
+#5 [react-app internal] load build definition from Dockerfile
+#5 transferring dockerfile: 857B done
+#5 DONE 1.0s
+
+#6 [express-app internal] load metadata for docker.io/library/node:20-alpine
+#6 DONE 0.0s
+
+#7 [express-app internal] load .dockerignore
+#7 transferring context: 2B done
+#7 DONE 0.5s
+
+#8 [react-app internal] load .dockerignore
+#8 transferring context: 2B done
+#8 ...
+
+#9 [express-app 1/5] FROM docker.io/library/node:20-alpine
+#9 DONE 0.0s
+
+#8 [react-app internal] load .dockerignore
+#8 DONE 0.6s
+
+#10 [express-app internal] load build context
+#10 ...
+
+#9 [react-app 1/5] FROM docker.io/library/node:20-alpine
+#9 DONE 0.0s
+
+#10 [express-app internal] load build context
+#10 transferring context: 63B 0.0s done
+#10 DONE 0.9s
+
+#11 [react-app internal] load build context
+#11 transferring context: 183B done
+#11 DONE 0.6s
+
+#12 [platform internal] load metadata for docker.io/library/golang:1.25-alpine
+#12 ...
+
+#13 [express-app 2/5] WORKDIR /app
+#13 CACHED
+
+#14 [express-app 3/5] COPY package*.json ./
+#14 CACHED
+
+#15 [express-app 4/5] RUN npm install
+#15 CACHED
+
+#16 [express-app 5/5] COPY server.js ./
+#16 CACHED
+
+#17 [express-app] exporting to image
+#17 exporting layers done
+#17 writing image sha256:250c210f2c14c0fc4b54313753591858a437f0d894cb44086f1741d2f1224172 0.1s done
+#17 naming to docker.io/library/otelverse-kit-express-app
+#17 naming to docker.io/library/otelverse-kit-express-app 0.0s done
+#17 ...
+
+#13 [react-app 2/5] WORKDIR /app
+#13 CACHED
+
+#18 [react-app 3/6] COPY package*.json ./
+#18 CACHED
+
+#19 [react-app 4/6] RUN sed -i 's/"@otelverse\/web": "workspace:\*"/"@otelverse\/web": "latest"/g' package.json || true
+#19 CACHED
+
+#20 [react-app 5/6] RUN npm install || true
+#20 CACHED
+
+#21 [react-app 6/6] COPY . .
+#21 CACHED
+
+#4 [platform internal] load metadata for docker.io/library/alpine:3.19
+#4 ...
+
+#17 [express-app] exporting to image
+#17 DONE 0.9s
+
+#22 [react-app] exporting to image
+#22 exporting layers done
+#22 writing image sha256:3d96ae72fc0c82308a0bae5da0acec291109d5254f4a8f5f26e9ebf577209d82 0.1s done
+#22 naming to docker.io/library/otelverse-kit-react-app 0.1s done
+#22 DONE 0.8s
+
+#12 [platform internal] load metadata for docker.io/library/golang:1.25-alpine
+#12 ...
+
+#4 [platform internal] load metadata for docker.io/library/alpine:3.19
+#4 DONE 4.3s
+
+#12 [platform internal] load metadata for docker.io/library/golang:1.25-alpine
+#12 DONE 4.8s
+
+#23 [platform internal] load .dockerignore
+#23 transferring context: 2B done
+#23 DONE 0.4s
+
+#24 [platform builder 1/6] FROM docker.io/library/golang:1.25-alpine@sha256:8d22e29d960bc50cd025d93d5b7c7d220b1ee9aa7a239b3c8f55a57e987e8d45
+#24 DONE 0.0s
+
+#25 [platform stage-1 1/4] FROM docker.io/library/alpine:3.19@sha256:6baf43584bcb78f2e5847d1de515f23499913ac9f12bdf834811a3145eb11ca1
+#25 DONE 0.0s
+
+#26 [platform internal] load build context
+#26 transferring context: 6.55kB done
+#26 DONE 0.5s
+
+#27 [express-app] resolving provenance for metadata file
+#27 DONE 0.0s
+
+#28 [react-app] resolving provenance for metadata file
+#28 DONE 0.0s
+
+#29 [platform stage-1 3/4] COPY --from=builder /build/platform /platform
+#29 CACHED
+
+#30 [platform stage-1 2/4] RUN apk add --no-cache ca-certificates
+#30 CACHED
+
+#31 [platform builder 2/6] WORKDIR /build
+#31 CACHED
+
+#32 [platform builder 3/6] COPY go.mod go.sum ./
+#32 CACHED
+
+#33 [platform builder 4/6] RUN go mod download
+#33 CACHED
+
+#34 [platform builder 5/6] COPY . .
+#34 CACHED
+
+#35 [platform builder 6/6] RUN CGO_ENABLED=0 go build -o platform .
+#35 CACHED
+
+#36 [platform stage-1 4/4] COPY --from=builder /build/migrations /migrations
+#36 CACHED
+
+#37 [platform] exporting to image
+#37 exporting layers done
+#37 writing image sha256:a46d2456b774097715cb301138152f442eef043b06066e55d67de8cd9aef1673 0.0s done
+#37 naming to docker.io/library/otelverse-kit-platform 0.0s done
+#37 DONE 0.2s
+
+#38 [platform] resolving provenance for metadata file
+#38 DONE 0.0s
+ otelverse-kit-express-app  Built
+ otelverse-kit-platform  Built
+ otelverse-kit-react-app  Built
+ Network otelverse-kit_otelverse-network  Creating
+ Network otelverse-kit_otelverse-network  Created
+ Container otelverse-kit-clickhouse-1  Creating
+ Container otelverse-kit-victoria-metrics-1  Creating
+ Container otelverse-kit-victoria-metrics-1  Created
+ Container otelverse-kit-clickhouse-1  Created
+ Container otelverse-kit-otel-collector-1  Creating
+ Container otelverse-kit-platform-1  Creating
+ Container otelverse-kit-otel-collector-1  Created
+ Container otelverse-kit-express-app-1  Creating
+ Container otelverse-kit-platform-1  Created
+ Container otelverse-kit-express-app-1  Created
+ Container otelverse-kit-react-app-1  Creating
+ Container otelverse-kit-react-app-1  Created
+ Container otelverse-kit-clickhouse-1  Starting
+ Container otelverse-kit-victoria-metrics-1  Starting
+ Container otelverse-kit-victoria-metrics-1  Started
+ Container otelverse-kit-clickhouse-1  Started
+ Container otelverse-kit-clickhouse-1  Waiting
+ Container otelverse-kit-clickhouse-1  Waiting
+ Container otelverse-kit-victoria-metrics-1  Waiting
+ Container otelverse-kit-victoria-metrics-1  Healthy
+ Container otelverse-kit-clickhouse-1  Healthy
+ Container otelverse-kit-otel-collector-1  Starting
+ Container otelverse-kit-clickhouse-1  Healthy
+ Container otelverse-kit-platform-1  Starting
+ Container otelverse-kit-platform-1  Started
+ Container otelverse-kit-otel-collector-1  Started
+ Container otelverse-kit-express-app-1  Starting
+ Container otelverse-kit-express-app-1  Started
+ Container otelverse-kit-react-app-1  Starting
+ Container otelverse-kit-react-app-1  Started
+Waiting for Platform to be ready...
+Platform is up!
+Waiting for Express app to be ready...
+Express app is up!
+Sending mock traffic to generate traces...
+Waiting for traces to be exported to ClickHouse (10s)...
+Querying Platform GraphQL for traces...
+❌ Traces not found. Output: {"errors":["uql query is required"]}
+time="2026-05-27T07:14:21+05:30" level=warning msg="/home/subesh/Startup_Projects/OtelVerse/platform/packages/integration-kits/compose/otelverse-kit/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+platform-1  | 2026/05/27 01:44:05 Starting platform HTTP server on :8080
+platform-1  | 2026/05/27 01:44:05 Starting OTLP gRPC receiver on :4317
+time="2026-05-27T07:14:21+05:30" level=warning msg="/home/subesh/Startup_Projects/OtelVerse/platform/packages/integration-kits/compose/otelverse-kit/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+clickhouse-1  | Processing configuration file '/etc/clickhouse-server/config.xml'.
+clickhouse-1  | Merging configuration file '/etc/clickhouse-server/config.d/docker_related_config.xml'.
+clickhouse-1  | Logging trace to /var/log/clickhouse-server/clickhouse-server.log
+clickhouse-1  | Logging errors to /var/log/clickhouse-server/clickhouse-server.err.log
+clickhouse-1  | Processing configuration file '/etc/clickhouse-server/config.xml'.
+clickhouse-1  | Merging configuration file '/etc/clickhouse-server/config.d/docker_related_config.xml'.
+clickhouse-1  | Saved preprocessed configuration to '/var/lib/clickhouse/preprocessed_configs/config.xml'.
+clickhouse-1  | Processing configuration file '/etc/clickhouse-server/users.xml'.
+clickhouse-1  | Saved preprocessed configuration to '/var/lib/clickhouse/preprocessed_configs/users.xml'.
+clickhouse-1  | 
+clickhouse-1  | /entrypoint.sh: create database 'default'
+clickhouse-1  | Processing configuration file '/etc/clickhouse-server/config.xml'.
+clickhouse-1  | Merging configuration file '/etc/clickhouse-server/config.d/docker_related_config.xml'.
+clickhouse-1  | Logging trace to /var/log/clickhouse-server/clickhouse-server.log
+clickhouse-1  | Logging errors to /var/log/clickhouse-server/clickhouse-server.err.log
+clickhouse-1  | Processing configuration file '/etc/clickhouse-server/config.xml'.
+clickhouse-1  | Merging configuration file '/etc/clickhouse-server/config.d/docker_related_config.xml'.
+clickhouse-1  | Saved preprocessed configuration to '/var/lib/clickhouse/preprocessed_configs/config.xml'.
+clickhouse-1  | Processing configuration file '/etc/clickhouse-server/users.xml'.
+clickhouse-1  | Saved preprocessed configuration to '/var/lib/clickhouse/preprocessed_configs/users.xml'.
+time="2026-05-27T07:14:21+05:30" level=warning msg="/home/subesh/Startup_Projects/OtelVerse/platform/packages/integration-kits/compose/otelverse-kit/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+ Container otelverse-kit-platform-1  Stopping
+ Container otelverse-kit-react-app-1  Stopping
+ Container otelverse-kit-react-app-1  Stopped
+ Container otelverse-kit-react-app-1  Removing
+ Container otelverse-kit-platform-1  Stopped
+ Container otelverse-kit-platform-1  Removing
+ Container otelverse-kit-react-app-1  Removed
+ Container otelverse-kit-express-app-1  Stopping
+ Container otelverse-kit-platform-1  Removed
+ Container otelverse-kit-express-app-1  Stopped
+ Container otelverse-kit-express-app-1  Removing
+ Container otelverse-kit-express-app-1  Removed
+ Container otelverse-kit-otel-collector-1  Stopping
+ Container otelverse-kit-otel-collector-1  Stopped
+ Container otelverse-kit-otel-collector-1  Removing
+ Container otelverse-kit-otel-collector-1  Removed
+ Container otelverse-kit-clickhouse-1  Stopping
+ Container otelverse-kit-victoria-metrics-1  Stopping
+ Container otelverse-kit-victoria-metrics-1  Stopped
+ Container otelverse-kit-victoria-metrics-1  Removing
+ Container otelverse-kit-victoria-metrics-1  Removed
+ Container otelverse-kit-clickhouse-1  Stopped
+ Container otelverse-kit-clickhouse-1  Removing
+ Container otelverse-kit-clickhouse-1  Removed
+ Network otelverse-kit_otelverse-network  Removing
+ Network otelverse-kit_otelverse-network  Removed

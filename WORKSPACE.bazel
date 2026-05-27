@@ -1,0 +1,41 @@
+workspace(name = "otelverse")
+
+# For now only rules_go and Gazelle are set up with WORKSPACE.
+# Other rules (rules_rust, rules_python, aspect_rules_ts, rules_proto,
+# rules_docker, rules_helm) will be added per-session as needed.
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# rules_go — Go support
+http_archive(
+    name = "io_bazel_rules_go",
+    sha256 = "86d3dc8f59d253524f933aaf2f3c05896cb0b605fc35b460c0b4b039996124c6",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazel-contrib/rules_go/releases/download/v0.60.0/rules_go-v0.60.0.zip",
+        "https://github.com/bazel-contrib/rules_go/releases/download/v0.60.0/rules_go-v0.60.0.zip",
+    ],
+)
+
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+
+go_rules_dependencies()
+
+go_register_toolchains(version = "1.25.0")
+
+# Gazelle — BUILD file generator
+http_archive(
+    name = "bazel_gazelle",
+    sha256 = "de86bb09ddac514d9831cd0af5addb49f196eff66cf7c779a595b410cbe40253",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazel-contrib/bazel-gazelle/releases/download/v0.51.0/bazel-gazelle-v0.51.0.tar.gz",
+        "https://github.com/bazel-contrib/bazel-gazelle/releases/download/v0.51.0/bazel-gazelle-v0.51.0.tar.gz",
+    ],
+)
+
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+load("//packages/unified-platform:deps.bzl", "unified_platform_deps")
+
+# gazelle:repository_macro packages/unified-platform/deps.bzl%unified_platform_deps
+unified_platform_deps()
+
+gazelle_dependencies()

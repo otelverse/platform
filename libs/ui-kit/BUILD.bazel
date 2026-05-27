@@ -1,0 +1,34 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all",
+    srcs = glob(["**"]),
+)
+
+sh_test(
+    name = "unit_test",
+    srcs = ["run_tests.sh"],
+    data = glob(
+        [
+            "src/**/*.ts",
+            "src/**/*.tsx",
+            "dist/**",
+            "*.json",
+            "*.js",
+            "*.ts",
+            "*.css",
+        ],
+        allow_empty = True,
+    ),
+)
+
+sh_binary(
+    name = "jest_test",
+    srcs = ["jest_runner.sh"],
+    data = [
+        "jest.config.js",
+        "package.json",
+        "pnpm-lock.yaml",
+        "tsconfig.json",
+    ],
+)

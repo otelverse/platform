@@ -1,0 +1,12 @@
+-- Materialized views for aggregated queries (placeholder for future use)
+-- CREATE MATERIALIZED VIEW IF NOT EXISTS trace_service_stats
+-- ENGINE = SummingMergeTree()
+-- ORDER BY (ServiceName, toDate(StartTime))
+-- AS SELECT
+--   ServiceName,
+--   toDate(StartTime) as Date,
+--   count() as TotalTraces,
+--   avg(Duration) as AvgDuration,
+--   quantile(0.95)(Duration) as P95Duration
+-- FROM otel_traces
+-- GROUP BY ServiceName, toDate(StartTime);

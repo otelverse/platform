@@ -1,14 +1,20 @@
-.vscode/
-AGENTS.md
+# Bazel
+bazel-*
+.bazel-*
+.bazelrc.user
+MODULE.bazel
+MODULE.bazel.lock
+/bazel-*
 
-# Node / JS
+# Node.js / JS
 node_modules/
+npm-debug.log*
 dist/
 build/
 .npm/
+.pnpmrc.json
 
-# Go & Bazel
-/bazel-*
+# Go
 *.exe
 *.exe~
 *.dll
@@ -28,6 +34,16 @@ playwright-report/
 blob-report/
 playwright/.cache/
 
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
 # OS
 .DS_Store
 Thumbs.db
+
+# Project
+AGENTS.md

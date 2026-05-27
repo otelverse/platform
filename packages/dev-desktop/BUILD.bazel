@@ -1,0 +1,9 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all",
+    srcs = glob(["**"]),
+)
+
+# The Go platform sidecar is built separately with CGO_ENABLED=1
+# This is handled by the build.sh script

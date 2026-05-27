@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "optimizer",
+    srcs = ["engine.go"],
+    importpath = "github.com/otelverse/unified-platform/packages/unified-platform/optimizer",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "go_default_library",
+    actual = ":optimizer",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "optimizer_test",
+    srcs = ["engine_test.go"],
+    embed = [":optimizer"],
+)

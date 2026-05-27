@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "agent_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/otelverse/chaos-engine/agent/cmd/agent",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//packages/chaos-engine/agent/internal/proxy",
+        "@io_opentelemetry_go_proto_otlp//collector/trace/v1:trace",
+        "@org_golang_google_grpc//:grpc",
+    ],
+)
+
+go_binary(
+    name = "agent",
+    embed = [":agent_lib"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,12 @@
+{
+  "borderRadius": {
+    "$type": "dimension",
+    "none": { "$value": "0" },
+    "sm": { "$value": "2px" },
+    "DEFAULT": { "$value": "4px" },
+    "md": { "$value": "6px" },
+    "lg": { "$value": "8px" },
+    "xl": { "$value": "12px" },
+    "full": { "$value": "9999px" }
+  }
+}

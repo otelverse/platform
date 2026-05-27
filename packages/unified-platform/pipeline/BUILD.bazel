@@ -1,0 +1,38 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+package(default_visibility = ["//visibility:public"])
+
+go_library(
+    name = "pipeline",
+    srcs = glob(
+        ["*.go"],
+        exclude = ["*_test.go"],
+    ),
+    importpath = "github.com/otelverse/unified-platform/packages/unified-platform/pipeline",
+    deps = [
+        "@com_github_docker_docker//api/types/container",
+        "@com_github_docker_docker//api/types/image",
+        "@com_github_docker_docker//api/types/network",
+        "@com_github_docker_docker//client",
+        "@com_github_docker_go_connections//nat",
+        "@com_github_opencontainers_image_spec//specs-go/v1:specs-go",
+        "@in_gopkg_yaml_v3//:yaml_v3",
+    ],
+)
+
+go_test(
+    name = "pipeline_test",
+    srcs = glob(["*_test.go"]),
+    embed = [":pipeline"],
+)
+
+filegroup(
+    name = "all",
+    srcs = glob(["**"]),
+)
+
+alias(
+    name = "go_default_library",
+    actual = ":pipeline",
+    visibility = ["//visibility:public"],
+)

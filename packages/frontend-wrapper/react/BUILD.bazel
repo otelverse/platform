@@ -1,0 +1,21 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all",
+    srcs = glob(["**"]),
+)
+
+sh_test(
+    name = "unit_test",
+    srcs = ["run_tests.sh"],
+    data = glob(
+        [
+            "src/**/*.ts",
+            "src/**/*.tsx",
+            "*.json",
+            "*.js",
+            "jest.config.js",
+        ],
+        allow_empty = True,
+    ),
+)

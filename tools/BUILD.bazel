@@ -1,0 +1,11 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all",
+    srcs = glob(["**"]),
+)
+
+sh_test(
+    name = "hello_test",
+    srcs = ["hello_test.sh"],
+)

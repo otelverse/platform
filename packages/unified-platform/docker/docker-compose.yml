@@ -1,0 +1,69 @@
+version: "3.9"
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.8
+    ports:
+      - "9000:9000"
+      - "8123:8123"
+    environment:
+      CLICKHOUSE_DB: default
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8123/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  victoria-metrics:
+    image: victoriametrics/victoria-metrics:v1.95.0
+    ports:
+      - "8428:8428"
+    command:
+      - "-storageDataPath=/storage"
+      - "-httpListenAddr=:8428"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8428/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.95.0
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+    command: ["--config=/etc/otel-collector-config.yml"]
+    depends_on:
+      platform:
+        condition: service_started
+      victoria-metrics:
+        condition: service_healthy
+
+  platform:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8080:8080"
+      - "4318"
+    environment:
+      PORT: "8080"
+      CLICKHOUSE_DSN: "clickhouse://clickhouse:9000?username=default&password="
+      OTLP_ADDR: ":4317"
+    depends_on:
+      clickhouse:
+        condition: service_started
+
+  telemetrygen:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.95.0
+    command:
+      - traces
+      - --otlp-endpoint=otel-collector:4317
+      - --rate=10
+      - --duration=30s
+      - --service-name=test-service
+    depends_on:
+      otel-collector:
+        condition: service_started
