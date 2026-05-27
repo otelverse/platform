@@ -1,8 +1,14 @@
-# OTelVerse Platform
+<div align="center">
+  <img src="./assets/logo.png" alt="OTelVerse Logo" width="200" />
+  <h1>OTelVerse Platform</h1>
+  <p><em>The ultimate unified observability experience built purely on OpenTelemetry.</em></p>
 
-OpenTelemetry-native observability platform. Monorepo containing the
-full stack: UI kit, shared protos, Go/Python microservices, TypeScript
-frontends, Helm charts, and developer tooling.
+  [![Build Status](https://github.com/otelverse/platform/actions/workflows/ci.yml/badge.svg)](https://github.com/otelverse/platform/actions)
+  [![Documentation](https://img.shields.io/badge/docs-docusaurus-blue)](https://docs.otelverse.io)
+  [![Discord](https://img.shields.io/discord/123456789012345678?label=Discord&logo=discord&color=5865F2)](https://discord.gg/otelverse)
+</div>
+
+Welcome to the **OTelVerse Platform** monorepo! This repository contains the backend and frontend components that make up the unified platform for managing, visualizing, and optimizing your OpenTelemetry data.
 
 ## Getting Started
 
