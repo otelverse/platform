@@ -11,3 +11,7 @@ export * from './TraceWaterfall';
 export * from './LogViewer';
 export * from './SessionReplayPlayer';
 export * from './Dashboard';
+export * from './Dashboard/DashboardGrid';
+export * from './Dashboard/MetricWidget';
+export * from './Charts/TimeSeriesChart';
+export * from './VisualQueryBuilder/VisualQueryBuilder';
