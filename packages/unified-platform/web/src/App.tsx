@@ -11,6 +11,11 @@ const ChaosExperimentsPage = lazy(() => import('./pages/Chaos/ChaosExperimentsPa
 const ChaosExperimentDetailPage = lazy(() => import('./pages/Chaos/ChaosExperimentDetailPage').then(m => ({ default: m.ChaosExperimentDetailPage })))
 const ChaosExperimentCreateForm = lazy(() => import('./pages/Chaos/ChaosExperimentCreateForm').then(m => ({ default: m.ChaosExperimentCreateForm })))
 
+// Alert pages
+const AlertListPage = lazy(() => import('./pages/Alerts/AlertListPage').then(m => ({ default: m.AlertListPage })))
+const AlertDetailPage = lazy(() => import('./pages/Alerts/AlertDetailPage').then(m => ({ default: m.AlertDetailPage })))
+const AlertHistoryPage = lazy(() => import('./pages/Alerts/AlertHistoryPage').then(m => ({ default: m.AlertHistoryPage })))
+
 function SidebarNav() {
   return (
     <nav>
@@ -27,6 +32,12 @@ function SidebarNav() {
         </li>
         <li className="mb-2">
           <Link to="/pipelines" className="text-blue-600 hover:underline">Pipelines</Link>
+        </li>
+        <li className="mb-2">
+          <Link to="/alerts" className="text-blue-600 hover:underline">Alerts</Link>
+        </li>
+        <li className="mb-2">
+          <Link to="/alerts/history" className="text-blue-600 hover:underline">Alert History</Link>
         </li>
         <li className="mb-2">
           <Link to="/chaos" className="text-blue-600 hover:underline">Chaos Experiments</Link>
@@ -52,6 +63,9 @@ export default function App() {
           <Route path="/pipelines" element={<PipelineBuilderPage />} />
           <Route path="/pipelines/new" element={<PipelineBuilderPage />} />
           <Route path="/pipelines/:id" element={<PipelineBuilderPage />} />
+          <Route path="/alerts" element={<AlertListPage />} />
+          <Route path="/alerts/history" element={<AlertHistoryPage />} />
+          <Route path="/alerts/:id" element={<AlertDetailPage />} />
           <Route path="/replays" element={<SessionReplayPage />} />
           <Route path="/chaos" element={<ChaosExperimentsPage />} />
           <Route path="/chaos/new" element={<ChaosExperimentCreateForm />} />
