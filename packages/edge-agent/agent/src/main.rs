@@ -7,6 +7,8 @@ use tokio::sync::mpsc;
 mod db;
 mod receiver;
 mod forwarder;
+mod opamp;
+mod mqtt;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -54,6 +56,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tokio::spawn(async move {
         forwarder::run_forwarder(fwd_endpoint, fwd_db_path, sync_interval).await;
     });
+
+    // Start OpAMP poller
+    // Assuming the control plane is at http://localhost:8082 for now
+    let control_plane_url = "http://localhost:8082".to_string();
+    let agent_id = "agent-123".to_string();
+    tokio::spawn(async move {
+        opamp::run_opamp_poller(agent_id, control_plane_url, 60).await;
+    });
+
+    // Start MQTT Receiver if enabled
+    if let Some(mqtt_config) = agent_config.mqtt {
+        if mqtt_config.enabled {
+            let broker = mqtt_config.broker;
+            let mqtt_db_tx = db_tx.clone();
+            tokio::spawn(async move {
+                mqtt::start_mqtt_receiver(broker, mqtt_db_tx).await;
+            });
+        }
+    }
 
     // Start OTLP Receiver
     let port = agent_config.local_listen_port;
