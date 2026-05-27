@@ -3,6 +3,9 @@ import { Layout } from '@otelverse/ui-kit'
 import TraceListPage from './pages/TraceListPage'
 import TraceDetailPage from './pages/TraceDetailPage'
 import PipelineBuilderPage from './pages/PipelineBuilder/PipelineBuilderPage'
+import { ChaosExperimentsPage } from './pages/Chaos/ChaosExperimentsPage'
+import { ChaosExperimentDetailPage } from './pages/Chaos/ChaosExperimentDetailPage'
+import { ChaosExperimentCreateForm } from './pages/Chaos/ChaosExperimentCreateForm'
 
 function SidebarNav() {
   return (
@@ -21,6 +24,9 @@ function SidebarNav() {
         <li className="mb-2">
           <Link to="/pipelines" className="text-blue-600 hover:underline">Pipelines</Link>
         </li>
+        <li className="mb-2">
+          <Link to="/chaos" className="text-blue-600 hover:underline">Chaos Experiments</Link>
+        </li>
       </ul>
     </nav>
   )
@@ -36,6 +42,9 @@ export default function App() {
         <Route path="/logs" element={<div>Logs page coming soon</div>} />
         <Route path="/metrics" element={<div>Metrics page coming soon</div>} />
         <Route path="/pipelines" element={<PipelineBuilderPage />} />
+        <Route path="/chaos" element={<ChaosExperimentsPage />} />
+        <Route path="/chaos/new" element={<ChaosExperimentCreateForm />} />
+        <Route path="/chaos/:id" element={<ChaosExperimentDetailPage />} />
       </Routes>
     </Layout>
   )

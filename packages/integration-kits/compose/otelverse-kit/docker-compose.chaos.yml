@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  otelverse-platform:
+    image: otelverse/platform:latest
+    ports:
+      - "8080:8080" # Platform API
+      - "3000:3000" # Platform Web UI
+    environment:
+      - CLICKHOUSE_DSN=tcp://clickhouse:9000
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    ports:
+      - "9000:9000"
+      - "8123:8123"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+    command: ["--config=/etc/otelcol-config.yml"]
+    volumes:
+      - ./otelcol-config.yml:/etc/otelcol-config.yml
+
+  chaos-agent:
+    image: otelverse/chaos-agent:latest
+    ports:
+      - "4319:4319" # Proxy OTLP gRPC
+    environment:
+      - PORT=4319
+      - OTLP_ENDPOINT=otel-collector:4317
+      - PLATFORM_GRAPHQL_URL=http://otelverse-platform:8080/graphql
+    depends_on:
+      - otel-collector
+      - otelverse-platform
+
+  demo-frontend:
+    image: otelverse/demo-frontend:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://chaos-agent:4319
+    depends_on:
+      - chaos-agent
