@@ -16,19 +16,23 @@ const AlertListPage = lazy(() => import('./pages/Alerts/AlertListPage').then(m =
 const AlertDetailPage = lazy(() => import('./pages/Alerts/AlertDetailPage').then(m => ({ default: m.AlertDetailPage })))
 const AlertHistoryPage = lazy(() => import('./pages/Alerts/AlertHistoryPage').then(m => ({ default: m.AlertHistoryPage })))
 
+// Metrics & Logs pages
+const DashboardPage = lazy(() => import('./pages/Dashboard/DashboardPage').then(m => ({ default: m.DashboardPage })))
+const LogsPage = lazy(() => import('./pages/Logs/LogsPage').then(m => ({ default: m.LogsPage })))
+
 function SidebarNav() {
   return (
     <nav>
       <h2 className="mb-4 text-lg font-semibold">OTelVerse</h2>
       <ul>
         <li className="mb-2">
+          <Link to="/dashboard" className="text-blue-600 hover:underline">Dashboard</Link>
+        </li>
+        <li className="mb-2">
           <Link to="/traces" className="text-blue-600 hover:underline">Traces</Link>
         </li>
         <li className="mb-2">
           <Link to="/logs" className="text-blue-600 hover:underline">Logs</Link>
-        </li>
-        <li className="mb-2">
-          <Link to="/metrics" className="text-blue-600 hover:underline">Metrics</Link>
         </li>
         <li className="mb-2">
           <Link to="/pipelines" className="text-blue-600 hover:underline">Pipelines</Link>
@@ -55,11 +59,11 @@ export default function App() {
     <Layout sidebar={<SidebarNav />}>
       <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading module...</div>}>
         <Routes>
-          <Route path="/" element={<Navigate to="/traces" replace />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/traces" element={<TraceListPage />} />
           <Route path="/traces/:id" element={<TraceDetailPage />} />
-          <Route path="/logs" element={<div>Logs page coming soon</div>} />
-          <Route path="/metrics" element={<div>Metrics page coming soon</div>} />
+          <Route path="/logs" element={<LogsPage />} />
           <Route path="/pipelines" element={<PipelineBuilderPage />} />
           <Route path="/pipelines/new" element={<PipelineBuilderPage />} />
           <Route path="/pipelines/:id" element={<PipelineBuilderPage />} />
