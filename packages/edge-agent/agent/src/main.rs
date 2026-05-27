@@ -5,6 +5,8 @@ use std::fs;
 use tokio::sync::mpsc;
 
 mod db;
+mod receiver;
+mod forwarder;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -45,7 +47,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         db::run_db_task(db_path, db_rx).await;
     });
 
-    // TODO: Setup OTLP Receiver, Forwarder, and MQTT ingestion
+    // Start forwarder task
+    let fwd_endpoint = agent_config.collector_endpoint.clone();
+    let fwd_db_path = agent_config.buffer_path.clone();
+    let sync_interval = agent_config.sync_interval_secs;
+    tokio::spawn(async move {
+        forwarder::run_forwarder(fwd_endpoint, fwd_db_path, sync_interval).await;
+    });
+
+    // Start OTLP Receiver
+    let port = agent_config.local_listen_port;
+    let receiver_db_tx = db_tx.clone();
+    tokio::spawn(async move {
+        receiver::start_receiver(port, receiver_db_tx).await;
+    });
 
     // Keep the main thread alive
     tokio::signal::ctrl_c().await?;
