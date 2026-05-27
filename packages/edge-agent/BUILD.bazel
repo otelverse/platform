@@ -1,6 +1,1 @@
-package(default_visibility = ["//visibility:public"])
-
-filegroup(
-    name = "all",
-    srcs = glob(["**"]),
-)
+exports_files(["Cargo.toml"])

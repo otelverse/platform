@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "control_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/otelverse/unified-platform/packages/edge-agent/control",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@com_github_go_chi_chi_v5//:go_default_library",
+        "@com_github_go_chi_chi_v5//middleware:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "control",
+    embed = [":control_lib"],
+    visibility = ["//visibility:public"],
+)
