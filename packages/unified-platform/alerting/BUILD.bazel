@@ -32,6 +32,9 @@ alias(
 
 go_test(
     name = "alerting_test",
-    srcs = ["evaluator_test.go"],
+    srcs = [
+        "evaluator_test.go",
+        "notifier_test.go",
+    ],
     embed = [":alerting"],
 )

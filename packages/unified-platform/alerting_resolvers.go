@@ -200,6 +200,20 @@ func (r *GraphQLResolver) resolveDeleteSilenceRule(ctx context.Context, vars map
 }
 
 func (r *GraphQLResolver) resolveTestNotification(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
-	// To be implemented in commit 3 (notification routing)
+	chID, _ := vars["channelId"].(string)
+	if chID == "" {
+		return nil, fmt.Errorf("channelId is required")
+	}
+	ch, ok := r.alertStore.GetChannel(chID)
+	if !ok {
+		return nil, fmt.Errorf("channel not found")
+	}
+
+	notifier := alerting.NewNotifier(r.alertStore)
+	err := notifier.SendNotification(*ch, alerting.AlertRule{Name: "Test Alert", ID: "test-rule-id"}, alerting.AlertEvent{State: "ALERTING", QueryResultCount: 42})
+	if err != nil {
+		return nil, fmt.Errorf("test notification failed: %w", err)
+	}
+
 	return map[string]interface{}{"testNotification": true}, nil
 }

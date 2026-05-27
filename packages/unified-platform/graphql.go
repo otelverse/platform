@@ -58,7 +58,7 @@ func NewGraphQLResolver(db *sql.DB) *GraphQLResolver {
 }
 
 func (r *GraphQLResolver) StartBackgroundTasks(ctx context.Context) {
-	evaluator := alerting.NewEvaluator(r.alertStore, r.db, alerting.NewNotifier())
+	evaluator := alerting.NewEvaluator(r.alertStore, r.db, alerting.NewNotifier(r.alertStore))
 	evaluator.Start(ctx)
 }
 
