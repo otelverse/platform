@@ -14,6 +14,7 @@ go_library(
     deps = [
         "//packages/unified-platform/pipeline",
         "//packages/unified-platform/uql",
+        "//packages/unified-platform/optimizer",
         "@com_github_clickhouse_clickhouse_go_v2//:go_default_library",
         "@io_opentelemetry_go_proto_otlp//collector/logs/v1:go_default_library",
         "@io_opentelemetry_go_proto_otlp//collector/trace/v1:go_default_library",
@@ -47,47 +48,3 @@ filegroup(
     srcs = glob(["**"]),
 )
 
-go_library(
-    name = "unified-platform_lib",
-    srcs = [
-        "graphql.go",
-        "main.go",
-        "migration.go",
-        "otlp_receiver.go",
-    ],
-    embedsrcs = [
-        "migrations/001_create_traces.sql",
-        "migrations/002_create_logs.sql",
-        "migrations/003_create_materialized_views.sql",
-    ],
-    importpath = "github.com/otelverse/unified-platform/packages/unified-platform",
-    deps = [
-        "@com_github_clickhouse_clickhouse_go_v2//:clickhouse-go",
-        "@io_opentelemetry_go_proto_otlp//collector/logs/v1:logs",
-        "@io_opentelemetry_go_proto_otlp//collector/trace/v1:trace",
-        "@io_opentelemetry_go_proto_otlp//common/v1:common",
-        "@io_opentelemetry_go_proto_otlp//logs/v1:logs",
-        "@io_opentelemetry_go_proto_otlp//trace/v1:trace",
-        "@org_golang_google_grpc//:grpc",
-        "@org_golang_google_grpc//credentials/insecure",
-    ],
-)
-
-go_test(
-    name = "unified-platform_test",
-    srcs = [
-        "graphql_test.go",
-        "migration_test.go",
-        "optimizer_integration_test.go",
-        "pipeline_integration_test.go",
-        "pipeline_resolver_test.go",
-        "uql_integration_test.go",
-    ],
-    embed = [":unified-platform_lib"],
-    deps = [
-        "@com_github_clickhouse_clickhouse_go_v2//:clickhouse-go",
-        "@com_github_marcboeker_go_duckdb//:go_default_library",
-        "@com_github_testcontainers_testcontainers_go//:testcontainers-go",
-        "@com_github_testcontainers_testcontainers_go//wait",
-    ],
-)
