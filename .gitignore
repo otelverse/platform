@@ -1,2 +1,33 @@
-.vscode
+.vscode/
 AGENTS.md
+
+# Node / JS
+node_modules/
+dist/
+build/
+.npm/
+
+# Go & Bazel
+/bazel-*
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Docusaurus
+.docusaurus/
+docs/build/
+docs/.docusaurus/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# OS
+.DS_Store
+Thumbs.db
