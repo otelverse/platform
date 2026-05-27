@@ -4,8 +4,11 @@ packages:
   - 'packages/*'
   - 'packages/frontend-wrapper/*'
   - 'packages/session-replay/*'
+  - 'docs'
 allowBuilds:
-  '@bundled-es-modules/glob': set this to true or false
+  '@bundled-es-modules/glob': true
   esbuild: true
   puppeteer: false
-  style-dictionary: set this to true or false
+  style-dictionary: true
+  '@swc/core': true
+  core-js: true
