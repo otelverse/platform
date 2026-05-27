@@ -19,6 +19,7 @@ export interface Log {
   timestamp: string
   severity: string
   body: string
+  traceId?: string
   attributes: Attribute[]
 }
 
@@ -42,11 +43,23 @@ export interface TraceFilters {
 }
 
 export interface LogFilters {
+  serviceName?: string
   severity?: string
-  message?: string
+  query?: string
   startTime: string
   endTime: string
   limit?: number
+}
+
+export interface TimeSeriesPoint {
+  timestamp: string
+  value: number
+}
+
+export interface MetricQueryResult {
+  metricName: string
+  labels: Record<string, string>
+  values: TimeSeriesPoint[]
 }
 
 export interface Pipeline {

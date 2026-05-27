@@ -8,4 +8,6 @@ export { Table } from './Table'
 export { CodeBlock } from './CodeBlock'
 export * from './Table';
 export * from './TraceWaterfall';
+export * from './LogViewer';
 export * from './SessionReplayPlayer';
+export * from './Dashboard';

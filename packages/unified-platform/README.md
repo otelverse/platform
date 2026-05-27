@@ -117,34 +117,38 @@ The Pipeline Builder is a visual editor for OTel Collector pipelines, accessible
 
 ## Alerting Engine
 
-The Alerting Engine evaluates UQL queries on a schedule and sends notifications when conditions are met.
+The platform features an in-memory alerting engine that evaluates UQL (Unified Query Language) rules on a defined schedule.
 
-### Features
-- **Threshold Alerts**: Trigger alerts when UQL query results meet conditions (e.g., `COUNT_GT 5`).
-- **Interval Evaluation**: Evaluate rules periodically (e.g., every 60 seconds) via a background engine.
-- **Notification Channels**: Support for Slack webhooks, generic webhooks, and email via SMTP.
-- **Silence Rules**: Suppress notifications during specific windows based on label matchers.
-- **Alert History**: Track evaluation history, state transitions (`OK` <-> `ALERTING`), and notification status.
+1.  **Rule Definition:** Create rules using GraphQL mutations. Each rule specifies a UQL query, threshold conditions, and an evaluation interval.
+2.  **Notification Routing:** Alerts can trigger notifications to specific channels (e.g., Slack Webhooks, Generic Webhooks, SMTP Email).
+3.  **Silence Rules:** Alerts can be silenced temporarily using key-value matchers.
+4.  **History Tracking:** State transitions (`OK` ↔ `ALERTING`) are recorded in the in-memory history store for dashboard visibility.
 
-### Example GraphQL Queries
+**Example GraphQL (Create Alert Rule):**
 
 ```graphql
-# Create an alert rule
 mutation {
   createAlertRule(input: {
-    name: "High API Errors",
-    description: "Traces with error status",
-    query: "traces | where status.code != \\"0\\"",
+    name: "High Error Rate",
+    query: "status_code >= 500",
+    condition: { type: "COUNT_GT", threshold: 10 },
     intervalSeconds: 60,
-    condition: { type: "COUNT_GT", threshold: 10 }
-  }) { id name }
-}
-
-# List active alerts
-query {
-  alertRules { id name state lastEvaluatedAt }
+    notificationChannelIds: []
+  }) {
+    id
+    state
+  }
 }
 ```
+
+## Metrics Dashboards & Log Viewer
+
+The platform natively supports visualizing time-series metrics from VictoriaMetrics and structured logs from ClickHouse.
+
+1.  **Dashboard Grid:** A customizable drag-and-drop grid interface (`react-grid-layout`) to arrange Metric Widgets.
+2.  **Time Series Charts:** Interactive `recharts`-based visualizations that pull data via PromQL proxies.
+3.  **Log Viewer:** A virtualized, high-performance structured log viewer with advanced filtering by time, severity, and text search.
+4.  **Metric-Trace Correlation:** Clicking on a metric data point automatically drills down into the relevant traces filtered by the time window and selected labels.
 
 ### Pipeline Optimizer
 

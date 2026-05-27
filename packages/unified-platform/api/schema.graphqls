@@ -1,10 +1,11 @@
 scalar JSON
 
 type Query {
-  traces(serviceName: String, operationName: String, startTime: DateTime!, endTime: DateTime!, limit: Int = 100): [Trace!]!
-  trace(id: String!): Trace
-  logs(severity: String, message: String, startTime: DateTime!, endTime: DateTime!, limit: Int = 100): [Log!]!
+  traces(serviceName: String, operationName: String, startTime: DateTime, endTime: DateTime, limit: Int): TraceList!
+  trace(id: String!): Trace!
+  logs(serviceName: String, severity: String, query: String, startTime: DateTime!, endTime: DateTime!, limit: Int = 100): [LogEntry!]!
   uql(query: String!): UQLResult!
+  metrics(query: String!, startTime: DateTime!, endTime: DateTime!, step: Int!): [MetricQueryResult!]!
   pipelines: [Pipeline!]!
   pipeline(id: ID!): Pipeline
   pipelineValidate(id: ID!): ValidationResult!
@@ -283,4 +284,23 @@ extend type Query {
   alertHistory(ruleId: ID, limit: Int): [AlertEvent!]!
   notificationChannels: [NotificationChannel!]!
   silenceRules: [SilenceRule!]!
+}
+
+type MetricQueryResult {
+  metricName: String!
+  labels: JSON!
+  values: [TimeSeriesPoint!]!
+}
+
+type TimeSeriesPoint {
+  timestamp: DateTime!
+  value: Float!
+}
+
+type LogEntry {
+  timestamp: DateTime!
+  severity: String!
+  body: String!
+  attributes: [Attribute!]!
+  traceId: String
 }

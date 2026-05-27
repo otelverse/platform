@@ -19,4 +19,6 @@ export {
 } from './useOptimizer'
 export { useSessionReplay, useSessionList } from './useSessionReplay'
 export * from './useChaos';
-export * from './useAlerts';
+export * from './useUQL'
+export * from './useAlerts'
+export * from './useMetrics';

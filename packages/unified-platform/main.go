@@ -52,7 +52,12 @@ func main() {
 		port = "8080"
 	}
 
-	gqlResolver := NewGraphQLResolver(db)
+	vmURL := os.Getenv("VICTORIAMETRICS_URL")
+	if vmURL == "" {
+		vmURL = "http://localhost:8428"
+	}
+
+	gqlResolver := NewGraphQLResolver(db, vmURL)
 	gqlResolver.StartBackgroundTasks(context.Background())
 
 	mux := http.NewServeMux()

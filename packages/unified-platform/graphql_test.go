@@ -40,6 +40,7 @@ func TestGraphQLSchemaPresence(t *testing.T) {
 }
 
 func TestGraphQLResponseSerialization(t *testing.T) {
+
 	resp := GraphQLResponse{
 		Data: map[string]interface{}{
 			"traces": []interface{}{

@@ -8,7 +8,7 @@ import (
 )
 
 func TestAlertingResolvers(t *testing.T) {
-	resolver := NewGraphQLResolver(nil) // DB not strictly needed for just alerting in-memory store tests
+	resolver := NewGraphQLResolver(nil, "http://localhost:8428") // DB not strictly needed for just alerting in-memory store tests
 	ctx := context.Background()
 
 	// 1. Create Alert Rule
