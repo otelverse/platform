@@ -3,6 +3,7 @@ packages:
   - 'packages/*/web'
   - 'packages/*'
   - 'packages/frontend-wrapper/*'
+  - 'packages/session-replay/*'
 allowBuilds:
   '@bundled-es-modules/glob': set this to true or false
   esbuild: true

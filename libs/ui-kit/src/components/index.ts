@@ -6,4 +6,6 @@ export { Badge } from './Badge'
 export { Layout } from './Layout'
 export { Table } from './Table'
 export { CodeBlock } from './CodeBlock'
-export { TraceWaterfall } from './TraceWaterfall'
+export * from './Table';
+export * from './TraceWaterfall';
+export * from './SessionReplayPlayer';

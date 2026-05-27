@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "api",
+    srcs = ["api.go"],
+    importpath = "github.com/otelverse/session-replay-service/internal/api",
+    visibility = ["//packages/session-replay/service:__subpackages__"],
+    deps = [
+        "//packages/session-replay/service/internal/storage",
+        "@com_github_gorilla_mux//:mux",
+    ],
+)
+
+alias(
+    name = "go_default_library",
+    actual = ":api",
+    visibility = ["//packages/session-replay/service:__subpackages__"],
+)

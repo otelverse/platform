@@ -17,3 +17,4 @@ export {
   useOptimizationRecommendations,
   useApplyRecommendation,
 } from './useOptimizer'
+export { useSessionReplay, useSessionList } from './useSessionReplay'

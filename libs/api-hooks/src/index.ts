@@ -15,6 +15,8 @@ export {
   useTelemetryStats,
   useOptimizationRecommendations,
   useApplyRecommendation,
+  useSessionReplay,
+  useSessionList,
 } from './hooks'
 export type {
   Trace,
