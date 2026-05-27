@@ -1,6 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+# gazelle:ignore
+
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "all",
     srcs = glob(["**"]),
+)
+
+go_library(
+    name = "alerting",
+    srcs = [
+        "models.go",
+        "store.go",
+    ],
+    importpath = "github.com/otelverse/unified-platform/alerting",
+    deps = ["@com_github_google_uuid//:uuid"],
+)
+
+alias(
+    name = "go_default_library",
+    actual = ":alerting",
+    visibility = ["//visibility:public"],
 )

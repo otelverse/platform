@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/otelverse/unified-platform/alerting"
 	"github.com/otelverse/unified-platform/optimizer"
 	"github.com/otelverse/unified-platform/pipeline"
 	"github.com/otelverse/unified-platform/uql"
@@ -18,6 +19,7 @@ type GraphQLResolver struct {
 	db            *sql.DB
 	pipelineStore *pipeline.Store
 	chaosStore    *ChaosStore
+	alertStore    *alerting.Store
 }
 
 type TracesQuery struct {
@@ -51,6 +53,7 @@ func NewGraphQLResolver(db *sql.DB) *GraphQLResolver {
 		db:            db,
 		pipelineStore: pipeline.NewStore(),
 		chaosStore:    NewChaosStore(),
+		alertStore:    alerting.NewStore(),
 	}
 }
 
@@ -119,6 +122,21 @@ func (r *GraphQLResolver) executeQuery(ctx context.Context, query string, vars m
 	}
 	if strings.Contains(query, "agents") {
 		return r.resolveAgents(ctx, vars)
+	}
+	if strings.Contains(query, "alertRules") {
+		return r.resolveAlertRules(ctx, vars)
+	}
+	if strings.Contains(query, "alertRule(") {
+		return r.resolveAlertRule(ctx, vars)
+	}
+	if strings.Contains(query, "alertHistory") {
+		return r.resolveAlertHistory(ctx, vars)
+	}
+	if strings.Contains(query, "notificationChannels") {
+		return r.resolveNotificationChannels(ctx, vars)
+	}
+	if strings.Contains(query, "silenceRules") {
+		return r.resolveSilenceRules(ctx, vars)
 	}
 
 	return nil, fmt.Errorf("unsupported query")
@@ -474,6 +492,30 @@ func (r *GraphQLResolver) resolveMutation(ctx context.Context, query string, var
 	}
 	if strings.Contains(query, "chaosCancelExperiment") {
 		return r.resolveChaosCancelExperiment(ctx, vars)
+	}
+	if strings.Contains(query, "createAlertRule") {
+		return r.resolveCreateAlertRule(ctx, vars)
+	}
+	if strings.Contains(query, "updateAlertRule") {
+		return r.resolveUpdateAlertRule(ctx, vars)
+	}
+	if strings.Contains(query, "deleteAlertRule") {
+		return r.resolveDeleteAlertRule(ctx, vars)
+	}
+	if strings.Contains(query, "createNotificationChannel") {
+		return r.resolveCreateNotificationChannel(ctx, vars)
+	}
+	if strings.Contains(query, "deleteNotificationChannel") {
+		return r.resolveDeleteNotificationChannel(ctx, vars)
+	}
+	if strings.Contains(query, "createSilenceRule") {
+		return r.resolveCreateSilenceRule(ctx, vars)
+	}
+	if strings.Contains(query, "deleteSilenceRule") {
+		return r.resolveDeleteSilenceRule(ctx, vars)
+	}
+	if strings.Contains(query, "testNotification") {
+		return r.resolveTestNotification(ctx, vars)
 	}
 	return nil, fmt.Errorf("unsupported mutation")
 }
