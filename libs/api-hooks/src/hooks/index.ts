@@ -18,3 +18,4 @@ export {
   useApplyRecommendation,
 } from './useOptimizer'
 export { useSessionReplay, useSessionList } from './useSessionReplay'
+export * from './useChaos';

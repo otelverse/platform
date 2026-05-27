@@ -17,6 +17,7 @@ import (
 type GraphQLResolver struct {
 	db            *sql.DB
 	pipelineStore *pipeline.Store
+	chaosStore    *ChaosStore
 }
 
 type TracesQuery struct {
@@ -49,6 +50,7 @@ func NewGraphQLResolver(db *sql.DB) *GraphQLResolver {
 	return &GraphQLResolver{
 		db:            db,
 		pipelineStore: pipeline.NewStore(),
+		chaosStore:    NewChaosStore(),
 	}
 }
 
@@ -105,6 +107,15 @@ func (r *GraphQLResolver) executeQuery(ctx context.Context, query string, vars m
 	}
 	if strings.Contains(query, "optimizationRecommendations") {
 		return r.resolveOptimizationRecommendations(ctx, vars)
+	}
+	if strings.Contains(query, "chaosExperiments") {
+		return r.resolveChaosExperiments(ctx, vars)
+	}
+	if strings.Contains(query, "chaosExperiment(") {
+		return r.resolveChaosExperiment(ctx, vars)
+	}
+	if strings.Contains(query, "chaosBlastRadius") {
+		return r.resolveChaosBlastRadius(ctx, vars)
 	}
 
 	return nil, fmt.Errorf("unsupported query")
@@ -451,6 +462,15 @@ func (r *GraphQLResolver) resolveMutation(ctx context.Context, query string, var
 	}
 	if strings.Contains(query, "applyRecommendation") {
 		return r.resolveApplyRecommendation(ctx, vars)
+	}
+	if strings.Contains(query, "chaosCreateExperiment") {
+		return r.resolveChaosCreateExperiment(ctx, vars)
+	}
+	if strings.Contains(query, "chaosStartExperiment") {
+		return r.resolveChaosStartExperiment(ctx, vars)
+	}
+	if strings.Contains(query, "chaosCancelExperiment") {
+		return r.resolveChaosCancelExperiment(ctx, vars)
 	}
 	return nil, fmt.Errorf("unsupported mutation")
 }

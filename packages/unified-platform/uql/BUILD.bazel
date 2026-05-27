@@ -8,7 +8,7 @@ go_library(
         ["*.go"],
         exclude = ["*_test.go"],
     ),
-    importpath = "github.com/otelverse/unified-platform/packages/unified-platform/uql",
+    importpath = "github.com/otelverse/unified-platform/uql",
 )
 
 go_test(

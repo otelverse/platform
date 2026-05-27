@@ -173,3 +173,61 @@ enum RecommendationType {
   PII_REDACTION
   PROBABILISTIC_SAMPLING
 }
+
+type ChaosExperiment {
+  id: ID!
+  name: String!
+  targetService: String!
+  targetSpanName: String
+  faultType: FaultType!
+  config: JSON!
+  status: ExperimentStatus!
+  startTime: DateTime!
+  endTime: DateTime
+  creator: String!
+}
+
+enum FaultType {
+  LATENCY
+  ERROR
+}
+
+enum ExperimentStatus {
+  SCHEDULED
+  RUNNING
+  COMPLETED
+  CANCELLED
+}
+
+input ChaosExperimentInput {
+  name: String!
+  targetService: String!
+  targetSpanName: String
+  faultType: FaultType!
+  config: JSON!
+}
+
+type BlastRadiusResult {
+  affectedServices: [AffectedService!]!
+  totalAffectedSpans: Int!
+  averageLatencyIncrease: Float!
+}
+
+type AffectedService {
+  serviceName: String!
+  spanCount: Int!
+  errorCount: Int!
+  latencyIncreasePct: Float!
+}
+
+extend type Query {
+  chaosExperiments: [ChaosExperiment!]!
+  chaosExperiment(id: ID!): ChaosExperiment
+  chaosBlastRadius(experimentId: ID!): BlastRadiusResult!
+}
+
+extend type Mutation {
+  chaosCreateExperiment(input: ChaosExperimentInput!): ChaosExperiment!
+  chaosStartExperiment(id: ID!): ChaosExperiment!
+  chaosCancelExperiment(id: ID!): ChaosExperiment!
+}
