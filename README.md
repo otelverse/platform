@@ -43,6 +43,7 @@ You can use the **Visual Query Builder** in the web interface to construct these
 - `packages/pipeline-builder` — React Flow-based pipeline editor for telemetry processing
 - `packages/session-replay` — Session replay recording and playback
 - `packages/edge-agent` — Lightweight telemetry collection agent
+- `packages/robotics-sdk` — Observability SDK for ROS 2 and Gazebo with Digital Twin correlation
 - `packages/chaos-engine` — Chaos engineering experimentation platform
 - `packages/dev-desktop` — Desktop development environment
 - `packages/integration-kits` — Third-party integrations
