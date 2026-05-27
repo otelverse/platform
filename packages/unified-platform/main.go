@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -52,6 +53,7 @@ func main() {
 	}
 
 	gqlResolver := NewGraphQLResolver(db)
+	gqlResolver.StartBackgroundTasks(context.Background())
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", healthzHandler)

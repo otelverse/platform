@@ -57,6 +57,11 @@ func NewGraphQLResolver(db *sql.DB) *GraphQLResolver {
 	}
 }
 
+func (r *GraphQLResolver) StartBackgroundTasks(ctx context.Context) {
+	evaluator := alerting.NewEvaluator(r.alertStore, r.db, alerting.NewNotifier())
+	evaluator.Start(ctx)
+}
+
 func (r *GraphQLResolver) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var gqlReq GraphQLRequest
 	if err := json.NewDecoder(req.Body).Decode(&gqlReq); err != nil {

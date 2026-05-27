@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 # gazelle:ignore
 
@@ -12,15 +12,26 @@ filegroup(
 go_library(
     name = "alerting",
     srcs = [
+        "evaluator.go",
         "models.go",
+        "notifier.go",
         "store.go",
     ],
     importpath = "github.com/otelverse/unified-platform/alerting",
-    deps = ["@com_github_google_uuid//:uuid"],
+    deps = [
+        "//packages/unified-platform/uql",
+        "@com_github_google_uuid//:uuid",
+    ],
 )
 
 alias(
     name = "go_default_library",
     actual = ":alerting",
     visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "alerting_test",
+    srcs = ["evaluator_test.go"],
+    embed = [":alerting"],
 )
