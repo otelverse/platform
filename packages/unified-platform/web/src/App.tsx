@@ -1,9 +1,9 @@
 import { Suspense, lazy } from 'react'
 import { Routes, Route, Navigate, Link } from 'react-router-dom'
 import { Layout } from '@otelverse/ui-kit'
-import TraceListPage from './pages/TraceListPage'
-import TraceDetailPage from './pages/TraceDetailPage'
-import { EdgeAgentListPage } from './pages/Edge/EdgeAgentListPage'
+const TraceListPage = lazy(() => import('./pages/TraceListPage'))
+const TraceDetailPage = lazy(() => import('./pages/TraceDetailPage'))
+const EdgeAgentListPage = lazy(() => import('./pages/Edge/EdgeAgentListPage').then(m => ({ default: m.EdgeAgentListPage })))
 
 const PipelineBuilderPage = lazy(() => import('./pages/PipelineBuilder/PipelineBuilderPage'))
 const SessionReplayPage = lazy(() => import('./pages/SessionReplayPage').then(m => ({ default: m.SessionReplayPage })))
