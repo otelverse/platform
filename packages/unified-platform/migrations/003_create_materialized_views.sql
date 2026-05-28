@@ -10,3 +10,4 @@
 --   quantile(0.95)(Duration) as P95Duration
 -- FROM otel_traces
 -- GROUP BY ServiceName, toDate(StartTime);
+SELECT 1;

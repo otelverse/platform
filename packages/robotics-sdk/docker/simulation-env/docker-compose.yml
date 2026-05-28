@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  gazebo:
+    image: osrf/ros:humble-desktop
+    command: bash -c "echo 'Gazebo simulation running with ROS 2...'"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://forwarder:4317
+
+  forwarder:
+    image: rust:1.80
+    command: bash -c "echo 'Robotics Forwarder running...' && sleep infinity"
+    environment:
+      - UPSTREAM_URL=http://platform:4318
+
+  platform:
+    image: alpine:latest
+    command: sh -c "echo 'Mock platform running...' && sleep infinity"

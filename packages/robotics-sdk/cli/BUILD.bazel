@@ -1,0 +1,8 @@
+package(default_visibility = ["//visibility:public"])
+
+sh_binary(
+    name = "build",
+    srcs = ["build.sh"],
+    data = glob(["**"]),
+    tags = ["local"],
+)

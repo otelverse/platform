@@ -73,6 +73,11 @@ const config: Config = {
         },
         {to: '/blog', label: 'Blog', position: 'left'},
         {
+          href: 'https://discord.gg/otelverse',
+          label: 'Discord',
+          position: 'right',
+        },
+        {
           href: 'https://github.com/otelverse/platform',
           label: 'GitHub',
           position: 'right',
@@ -114,7 +119,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} OTelVerse, Inc. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} OTelVerse, Inc. Licensed under <a href="https://github.com/otelverse/platform/blob/main/LICENSE" target="_blank">Apache 2.0</a>. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

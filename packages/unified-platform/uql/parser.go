@@ -32,9 +32,11 @@ type Filter struct {
 
 // Query represents a parsed UQL query.
 type Query struct {
-	Type    QueryType `json:"type"`
-	Filters []Filter  `json:"filters"`
-	Limit   int       `json:"limit"`
+	Type        QueryType        `json:"type"`
+	Filters     []Filter         `json:"filters"`
+	Limit       int              `json:"limit"`
+	Aggregation *AggregationNode `json:"aggregation,omitempty"`
+	Join        *JoinNode        `json:"join,omitempty"`
 }
 
 // Parser is a recursive descent parser for UQL.
@@ -95,6 +97,11 @@ func tokenize(input string) []string {
 			i++
 			continue
 		}
+		if strings.ContainsRune("(),", rune(c)) {
+			tokens = append(tokens, string(c))
+			i++
+			continue
+		}
 		if c == '\'' {
 			j := i + 1
 			for j < len(input) && input[j] != '\'' {
@@ -109,7 +116,7 @@ func tokenize(input string) []string {
 			break
 		}
 		start := i
-		for i < len(input) && !strings.ContainsRune(" \t|", rune(input[i])) {
+		for i < len(input) && !strings.ContainsRune(" \t|(),", rune(input[i])) {
 			i++
 		}
 		tokens = append(tokens, input[start:i])
@@ -156,8 +163,26 @@ func (p *Parser) Parse() (*Query, error) {
 					return nil, err
 				}
 				q.Limit = limit
+			} else if next == "by" {
+				agg, err := p.parseAggregation()
+				if err != nil {
+					return nil, err
+				}
+				q.Aggregation = agg
+			} else if isAggregationFunction(next) {
+				agg, err := p.parseAggregationFunctions(nil)
+				if err != nil {
+					return nil, err
+				}
+				q.Aggregation = agg
+			} else if next == "join" {
+				join, err := p.parseJoin()
+				if err != nil {
+					return nil, err
+				}
+				q.Join = join
 			} else {
-				return nil, fmt.Errorf("expected 'where' or 'limit' after '|', got '%s'", next)
+				return nil, fmt.Errorf("expected 'where', 'limit', 'by', 'join' or aggregation function after '|', got '%s'", next)
 			}
 		} else {
 			return nil, fmt.Errorf("unexpected token '%s'", tok)
@@ -165,6 +190,133 @@ func (p *Parser) Parse() (*Query, error) {
 	}
 
 	return q, nil
+}
+
+func isAggregationFunction(name string) bool {
+	switch name {
+	case "count", "avg", "p95", "min", "max", "sum":
+		return true
+	}
+	return false
+}
+
+func (p *Parser) parseAggregation() (*AggregationNode, error) {
+	if p.pos >= len(p.input) || p.input[p.pos] != "by" {
+		return nil, fmt.Errorf("expected 'by'")
+	}
+	p.pos++
+
+	if p.pos >= len(p.input) {
+		return nil, fmt.Errorf("expected field after 'by'")
+	}
+	field := p.input[p.pos]
+	p.pos++
+
+	return p.parseAggregationFunctions(&field)
+}
+
+func (p *Parser) parseAggregationFunctions(groupByField *FieldOpt) (*AggregationNode, error) {
+	agg := &AggregationNode{}
+	if groupByField != nil {
+		agg.GroupByField = *groupByField
+	}
+
+	// We might have a '|' before the aggregation functions if called after 'by'
+	if p.pos < len(p.input) && p.input[p.pos] == "|" {
+		p.pos++
+	}
+
+	if p.pos >= len(p.input) {
+		if groupByField != nil {
+			// If we just had "by field" and end of query, default to count
+			agg.Functions = append(agg.Functions, AggregationFunction{Name: "count"})
+			return agg, nil
+		}
+		return nil, fmt.Errorf("expected aggregation function")
+	}
+	
+	// If the next token is an aggregation function, parse it
+	if isAggregationFunction(p.input[p.pos]) {
+		for p.pos < len(p.input) {
+			funcName := p.input[p.pos]
+			if !isAggregationFunction(funcName) {
+				// If we hit something else, maybe we're done parsing functions
+				break
+			}
+			p.pos++
+
+			fn := AggregationFunction{Name: funcName}
+			
+			if funcName != "count" {
+				if p.pos >= len(p.input) || p.input[p.pos] != "(" {
+					return nil, fmt.Errorf("expected '(' after '%s'", funcName)
+				}
+				p.pos++
+				
+				if p.pos >= len(p.input) {
+					return nil, fmt.Errorf("expected field inside '%s'", funcName)
+				}
+				fn.Field = p.input[p.pos]
+				p.pos++
+				
+				if p.pos >= len(p.input) || p.input[p.pos] != ")" {
+					return nil, fmt.Errorf("expected ')' after field in '%s'", funcName)
+				}
+				p.pos++
+			}
+			
+			agg.Functions = append(agg.Functions, fn)
+			
+			if p.pos < len(p.input) && p.input[p.pos] == "," {
+				p.pos++ // skip comma and loop
+			} else {
+				break
+			}
+		}
+	} else if groupByField != nil {
+		// If we had "by field" but no explicit functions follow, default to count
+		agg.Functions = append(agg.Functions, AggregationFunction{Name: "count"})
+	} else {
+		return nil, fmt.Errorf("expected aggregation function, got '%s'", p.input[p.pos])
+	}
+
+	return agg, nil
+}
+
+type FieldOpt = string
+
+func (p *Parser) parseJoin() (*JoinNode, error) {
+	if p.pos >= len(p.input) || p.input[p.pos] != "join" {
+		return nil, fmt.Errorf("expected 'join'")
+	}
+	p.pos++
+
+	if p.pos >= len(p.input) {
+		return nil, fmt.Errorf("expected signal type after 'join'")
+	}
+	
+	targetSignal := QueryTypeLogs
+	if p.input[p.pos] == "logs" {
+		targetSignal = QueryTypeLogs
+	} else if p.input[p.pos] == "metrics" {
+		targetSignal = QueryTypeTraces // Placeholder, metrics join deferred
+	} else {
+		return nil, fmt.Errorf("expected 'logs' after join")
+	}
+	p.pos++
+	
+	if p.pos >= len(p.input) || p.input[p.pos] != "on" {
+		return nil, fmt.Errorf("expected 'on' after join target")
+	}
+	p.pos++
+	
+	if p.pos >= len(p.input) {
+		return nil, fmt.Errorf("expected field after 'on'")
+	}
+	onField := p.input[p.pos]
+	p.pos++
+	
+	return &JoinNode{TargetSignal: targetSignal, OnField: onField}, nil
 }
 
 func (p *Parser) parseFilter() (*Filter, error) {

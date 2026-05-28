@@ -7,7 +7,7 @@ import (
 )
 
 func TestPipelineIntegration_FullCRUD(t *testing.T) {
-	resolver := NewGraphQLResolver(nil)
+	resolver := NewGraphQLResolver(nil, nil, "http://localhost:8428")
 
 	ctx := context.Background()
 
@@ -119,7 +119,7 @@ func TestPipelineIntegration_FullCRUD(t *testing.T) {
 }
 
 func TestPipelineIntegration_Validate(t *testing.T) {
-	resolver := NewGraphQLResolver(nil)
+	resolver := NewGraphQLResolver(nil, nil, "http://localhost:8428")
 
 	ctx := context.Background()
 
@@ -145,7 +145,7 @@ func TestPipelineIntegration_Validate(t *testing.T) {
 }
 
 func TestPipelineIntegration_ExportYAML(t *testing.T) {
-	resolver := NewGraphQLResolver(nil)
+	resolver := NewGraphQLResolver(nil, nil, "http://localhost:8428")
 	ctx := context.Background()
 
 	exportVars := map[string]interface{}{"id": "default"}
@@ -169,7 +169,7 @@ func TestPipelineIntegration_ExportYAML(t *testing.T) {
 }
 
 func TestPipelineIntegration_ExecuteQuery(t *testing.T) {
-	resolver := NewGraphQLResolver(nil)
+	resolver := NewGraphQLResolver(nil, nil, "http://localhost:8428")
 	ctx := context.Background()
 
 	result, err := resolver.executeQuery(ctx, "query { pipelines { id name } }", nil)

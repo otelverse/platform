@@ -115,6 +115,41 @@ The Pipeline Builder is a visual editor for OTel Collector pipelines, accessible
 - **YAML Export**: Generate valid OTel Collector `config.yaml` for download
 - **One-Click Deploy**: Deploy to local Docker as a running collector container
 
+## Alerting Engine
+
+The platform features an in-memory alerting engine that evaluates UQL (Unified Query Language) rules on a defined schedule.
+
+1.  **Rule Definition:** Create rules using GraphQL mutations. Each rule specifies a UQL query, threshold conditions, and an evaluation interval.
+2.  **Notification Routing:** Alerts can trigger notifications to specific channels (e.g., Slack Webhooks, Generic Webhooks, SMTP Email).
+3.  **Silence Rules:** Alerts can be silenced temporarily using key-value matchers.
+4.  **History Tracking:** State transitions (`OK` ↔ `ALERTING`) are recorded in the in-memory history store for dashboard visibility.
+
+**Example GraphQL (Create Alert Rule):**
+
+```graphql
+mutation {
+  createAlertRule(input: {
+    name: "High Error Rate",
+    query: "status_code >= 500",
+    condition: { type: "COUNT_GT", threshold: 10 },
+    intervalSeconds: 60,
+    notificationChannelIds: []
+  }) {
+    id
+    state
+  }
+}
+```
+
+## Metrics Dashboards & Log Viewer
+
+The platform natively supports visualizing time-series metrics from VictoriaMetrics and structured logs from ClickHouse.
+
+1.  **Dashboard Grid:** A customizable drag-and-drop grid interface (`react-grid-layout`) to arrange Metric Widgets.
+2.  **Time Series Charts:** Interactive `recharts`-based visualizations that pull data via PromQL proxies.
+3.  **Log Viewer:** A virtualized, high-performance structured log viewer with advanced filtering by time, severity, and text search.
+4.  **Metric-Trace Correlation:** Clicking on a metric data point automatically drills down into the relevant traces filtered by the time window and selected labels.
+
 ### Pipeline Optimizer
 
 The Pipeline Optimizer is a heuristic engine that analyzes recent telemetry data stored in ClickHouse to generate smart recommendations for your pipeline:

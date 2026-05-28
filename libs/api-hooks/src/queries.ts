@@ -57,13 +57,27 @@ export const TRACE_QUERY = `
 `
 
 export const LOGS_QUERY = `
-  query Logs($severity: String, $message: String, $startTime: DateTime!, $endTime: DateTime!, $limit: Int) {
-    logs(severity: $severity, message: $message, startTime: $startTime, endTime: $endTime, limit: $limit) {
+  query Logs($serviceName: String, $severity: String, $query: String, $startTime: DateTime!, $endTime: DateTime!, $limit: Int) {
+    logs(serviceName: $serviceName, severity: $severity, query: $query, startTime: $startTime, endTime: $endTime, limit: $limit) {
       timestamp
       severity
       body
+      traceId
       attributes {
         key
+        value
+      }
+    }
+  }
+`
+
+export const METRICS_QUERY = `
+  query Metrics($query: String!, $startTime: DateTime!, $endTime: DateTime!, $step: Int!) {
+    metrics(query: $query, startTime: $startTime, endTime: $endTime, step: $step) {
+      metricName
+      labels
+      values {
+        timestamp
         value
       }
     }

@@ -1,6 +1,9 @@
-.PHONY: up down logs test
+.PHONY: up up-all down logs test test-e2e
 
 up:
+	docker-compose up -d --build
+
+up-all:
 	docker-compose up -d --build
 
 down:
@@ -11,3 +14,6 @@ logs:
 
 test:
 	./test.sh
+
+test-e2e:
+	./e2e-test.sh

@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"encoding/json"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -23,17 +26,53 @@ type ChaosExperiment struct {
 }
 
 type ChaosStore struct {
+	db          *sql.DB
 	mu          sync.RWMutex
 	experiments map[string]*ChaosExperiment
 }
 
-func NewChaosStore() *ChaosStore {
+func NewChaosStore(db *sql.DB) *ChaosStore {
 	return &ChaosStore{
+		db:          db,
 		experiments: make(map[string]*ChaosExperiment),
 	}
 }
 
 func (s *ChaosStore) List() []*ChaosExperiment {
+	if s.db != nil {
+		rows, err := s.db.Query(`SELECT id, name, target_service, target_span_name, fault_type, config, status, start_time, end_time, creator FROM chaos_experiments`)
+		if err != nil {
+			log.Printf("List chaos db error: %v", err)
+			return nil
+		}
+		defer rows.Close()
+		var list []*ChaosExperiment
+		for rows.Next() {
+			var e ChaosExperiment
+			var configJSON []byte
+			var st, et sql.NullTime
+			var tsn, creator sql.NullString
+			if err := rows.Scan(&e.ID, &e.Name, &e.TargetService, &tsn, &e.FaultType, &configJSON, &e.Status, &st, &et, &creator); err == nil {
+				json.Unmarshal(configJSON, &e.Config)
+				if tsn.Valid {
+					e.TargetSpanName = &tsn.String
+				}
+				if creator.Valid {
+					e.Creator = creator.String
+				}
+				if st.Valid {
+					e.StartTime = st.Time.Format(time.RFC3339)
+				}
+				if et.Valid {
+					ts := et.Time.Format(time.RFC3339)
+					e.EndTime = &ts
+				}
+				list = append(list, &e)
+			}
+		}
+		return list
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	list := make([]*ChaosExperiment, 0, len(s.experiments))
@@ -44,6 +83,34 @@ func (s *ChaosStore) List() []*ChaosExperiment {
 }
 
 func (s *ChaosStore) Get(id string) (*ChaosExperiment, bool) {
+	if s.db != nil {
+		var e ChaosExperiment
+		var configJSON []byte
+		var st, et sql.NullTime
+		var tsn, creator sql.NullString
+		err := s.db.QueryRow(`SELECT name, target_service, target_span_name, fault_type, config, status, start_time, end_time, creator FROM chaos_experiments WHERE id=$1`, id).
+			Scan(&e.Name, &e.TargetService, &tsn, &e.FaultType, &configJSON, &e.Status, &st, &et, &creator)
+		if err != nil {
+			return nil, false
+		}
+		e.ID = id
+		json.Unmarshal(configJSON, &e.Config)
+		if tsn.Valid {
+			e.TargetSpanName = &tsn.String
+		}
+		if creator.Valid {
+			e.Creator = creator.String
+		}
+		if st.Valid {
+			e.StartTime = st.Time.Format(time.RFC3339)
+		}
+		if et.Valid {
+			ts := et.Time.Format(time.RFC3339)
+			e.EndTime = &ts
+		}
+		return &e, true
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	e, ok := s.experiments[id]
@@ -51,9 +118,6 @@ func (s *ChaosStore) Get(id string) (*ChaosExperiment, bool) {
 }
 
 func (s *ChaosStore) Create(input map[string]interface{}) (*ChaosExperiment, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	id := uuid.New().String()
 	name, _ := input["name"].(string)
 	targetService, _ := input["targetService"].(string)
@@ -78,11 +142,35 @@ func (s *ChaosStore) Create(input map[string]interface{}) (*ChaosExperiment, err
 		Creator:        "Admin",
 	}
 
+	if s.db != nil {
+		configJSON, _ := json.Marshal(config)
+		_, err := s.db.Exec(`INSERT INTO chaos_experiments (id, name, target_service, target_span_name, fault_type, config, status, start_time, creator) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+			id, name, targetService, targetSpanName, faultType, configJSON, exp.Status, time.Now(), exp.Creator)
+		if err != nil {
+			log.Printf("Create chaos db error: %v", err)
+		}
+		return exp, nil
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.experiments[id] = exp
 	return exp, nil
 }
 
 func (s *ChaosStore) Start(id string) (*ChaosExperiment, error) {
+	if s.db != nil {
+		_, err := s.db.Exec(`UPDATE chaos_experiments SET status='RUNNING' WHERE id=$1`, id)
+		if err != nil {
+			return nil, err
+		}
+		e, ok := s.Get(id)
+		if !ok {
+			return nil, fmt.Errorf("experiment not found")
+		}
+		return e, nil
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	e, ok := s.experiments[id]
@@ -94,6 +182,19 @@ func (s *ChaosStore) Start(id string) (*ChaosExperiment, error) {
 }
 
 func (s *ChaosStore) Cancel(id string) (*ChaosExperiment, error) {
+	nowStr := time.Now().Format(time.RFC3339)
+	if s.db != nil {
+		_, err := s.db.Exec(`UPDATE chaos_experiments SET status='CANCELLED', end_time=$1 WHERE id=$2`, time.Now(), id)
+		if err != nil {
+			return nil, err
+		}
+		e, ok := s.Get(id)
+		if !ok {
+			return nil, fmt.Errorf("experiment not found")
+		}
+		return e, nil
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	e, ok := s.experiments[id]
@@ -101,8 +202,7 @@ func (s *ChaosStore) Cancel(id string) (*ChaosExperiment, error) {
 		return nil, fmt.Errorf("experiment not found")
 	}
 	e.Status = "CANCELLED"
-	now := time.Now().Format(time.RFC3339)
-	e.EndTime = &now
+	e.EndTime = &nowStr
 	return e, nil
 }
 
@@ -176,7 +276,7 @@ func (r *GraphQLResolver) resolveChaosBlastRadius(ctx context.Context, vars map[
 			countIf(StatusCode = 2) as errorCount,
 			avg(Duration) as avgDuration
 		FROM otel_traces
-		WHERE JSONExtractString(Attributes, 'chaos.experiment_id') = ?
+		WHERE Attributes['chaos.experiment_id'] = ?
 		GROUP BY ServiceName
 	`
 	rows, err := r.db.QueryContext(ctx, query, expID)

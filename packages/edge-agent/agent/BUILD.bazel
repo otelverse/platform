@@ -1,0 +1,14 @@
+sh_test(
+    name = "cargo_test",
+    srcs = ["test.sh"],
+    data = glob(["**/*"]) + [
+        "//libs/edge-common:all_files",
+    ],
+    tags = ["requires-network"],
+)
+
+filegroup(
+    name = "all_files",
+    srcs = glob(["**/*"]),
+    visibility = ["//visibility:public"],
+)

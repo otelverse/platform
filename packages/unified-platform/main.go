@@ -1,19 +1,26 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
+
+	_ "net/http/pprof"
 
 	_ "github.com/ClickHouse/clickhouse-go/v2"
+	_ "github.com/lib/pq"
 )
 
 func main() {
-	migrate := flag.Bool("migrate", false, "run database migrations")
+
 	otlpAddr := flag.String("otlp-addr", ":4317", "OTLP gRPC receiver address")
+	postgresDSNFlag := flag.String("postgres-dsn", "", "PostgreSQL DSN for persistence")
+	pprofFlag := flag.Bool("pprof", false, "Enable pprof profiling on /debug/pprof")
 	flag.Parse()
 
 	clickhouseDSN := os.Getenv("CLICKHOUSE_DSN")
@@ -22,11 +29,8 @@ func main() {
 	}
 
 	var db *sql.DB
-	if *migrate {
-		if err := RunMigrations(clickhouseDSN); err != nil {
-			log.Fatalf("migration failed: %v", err)
-		}
-		return
+	if err := RunMigrations(clickhouseDSN); err != nil {
+		log.Printf("migration error (ignoring if already exists): %v", err)
 	}
 
 	var err error
@@ -34,10 +38,46 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to open clickhouse connection: %v", err)
 	}
+	// Setup ClickHouse connection pooling
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(time.Hour)
 	defer db.Close()
 
 	if err := db.Ping(); err != nil {
 		log.Printf("warning: clickhouse not reachable: %v", err)
+	}
+
+	// Postgres Setup
+	postgresDSN := *postgresDSNFlag
+	if postgresDSN == "" {
+		postgresDSN = os.Getenv("POSTGRES_DSN")
+	}
+
+	var pgDB *sql.DB
+	if postgresDSN != "" {
+		log.Printf("Connecting to Postgres...")
+		pgDB, err = sql.Open("postgres", postgresDSN)
+		if err == nil {
+			if err := pgDB.Ping(); err != nil {
+				log.Printf("warning: postgres not reachable: %v", err)
+				pgDB.Close()
+				pgDB = nil
+			} else {
+				if err := RunPostgresMigrations(postgresDSN); err != nil {
+					log.Printf("warning: postgres migration error: %v", err)
+				}
+			}
+		} else {
+			log.Printf("warning: failed to open postgres: %v", err)
+			pgDB = nil
+		}
+	} else {
+		log.Println("warning: POSTGRES_DSN not set. Falling back to in-memory stores.")
+	}
+
+	if pgDB != nil {
+		defer pgDB.Close()
 	}
 
 	otlpServer, err := StartOTLPReceiver(db, *otlpAddr)
@@ -51,11 +91,21 @@ func main() {
 		port = "8080"
 	}
 
-	gqlResolver := NewGraphQLResolver(db)
+	vmURL := os.Getenv("VICTORIAMETRICS_URL")
+	if vmURL == "" {
+		vmURL = "http://localhost:8428"
+	}
+
+	gqlResolver := NewGraphQLResolver(db, pgDB, vmURL)
+	gqlResolver.StartBackgroundTasks(context.Background())
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/healthz", healthzHandler)
+	mux.HandleFunc("/healthz", healthzHandler(db, pgDB))
 	mux.Handle("/graphql", corsMiddleware(gqlResolver))
+	
+	if *pprofFlag {
+		importPprof(mux)
+	}
 
 	addr := fmt.Sprintf(":%s", port)
 	log.Printf("Starting platform HTTP server on %s", addr)
@@ -64,10 +114,32 @@ func main() {
 	}
 }
 
-func healthzHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, `{"status":"ok"}`)
+func healthzHandler(db *sql.DB, pgDB *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+		defer cancel()
+
+		if err := db.PingContext(ctx); err != nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			fmt.Fprintf(w, `{"status":"error", "error":"clickhouse unreachable"}`)
+			return
+		}
+		if pgDB != nil {
+			if err := pgDB.PingContext(ctx); err != nil {
+				w.WriteHeader(http.StatusServiceUnavailable)
+				fmt.Fprintf(w, `{"status":"error", "error":"postgres unreachable"}`)
+				return
+			}
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, `{"status":"ok"}`)
+	}
+}
+
+func importPprof(mux *http.ServeMux) {
+	// We need to route them in our custom mux if we don't use the default
+	mux.Handle("/debug/pprof/", http.DefaultServeMux)
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
