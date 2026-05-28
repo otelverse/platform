@@ -11,7 +11,7 @@ import (
 
 func TestChaosEngineIntegration(t *testing.T) {
 	ctx := context.Background()
-	store := NewChaosStore()
+	store := NewChaosStore(nil)
 
 	// 1. Create Experiment
 	input := map[string]interface{}{

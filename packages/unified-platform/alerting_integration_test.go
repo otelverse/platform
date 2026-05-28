@@ -71,7 +71,7 @@ func TestAlertingIntegration(t *testing.T) {
 	// Wait for clickhouse to ingest
 	time.Sleep(2 * time.Second)
 
-	resolver := NewGraphQLResolver(db, "http://localhost:8428")
+	resolver := NewGraphQLResolver(db, nil, "http://localhost:8428")
 	store := resolver.alertStore
 
 	// Add test notifier logic by making a custom struct that records

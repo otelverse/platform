@@ -6,7 +6,7 @@ import (
 )
 
 func TestPipelineResolvePipelines(t *testing.T) {
-	resolver := NewGraphQLResolver(nil, "http://localhost:8428")
+	resolver := NewGraphQLResolver(nil, nil, "http://localhost:8428")
 	result, err := resolver.resolvePipelines(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("resolvePipelines failed: %v", err)
@@ -25,7 +25,7 @@ func TestPipelineResolvePipelines(t *testing.T) {
 }
 
 func TestPipelineResolvePipeline(t *testing.T) {
-	resolver := NewGraphQLResolver(nil, "http://localhost:8428")
+	resolver := NewGraphQLResolver(nil, nil, "http://localhost:8428")
 	vars := map[string]interface{}{"id": "default"}
 	result, err := resolver.resolvePipeline(context.Background(), vars)
 	if err != nil {
@@ -41,7 +41,7 @@ func TestPipelineResolvePipeline(t *testing.T) {
 }
 
 func TestPipelineResolvePipelineNotFound(t *testing.T) {
-	resolver := NewGraphQLResolver(nil, "http://localhost:8428")
+	resolver := NewGraphQLResolver(nil, nil, "http://localhost:8428")
 	vars := map[string]interface{}{"id": "nonexistent"}
 	result, err := resolver.resolvePipeline(context.Background(), vars)
 	if err != nil {
@@ -57,7 +57,7 @@ func TestPipelineResolvePipelineNotFound(t *testing.T) {
 }
 
 func TestPipelineResolveCreate(t *testing.T) {
-	resolver := NewGraphQLResolver(nil, "http://localhost:8428")
+	resolver := NewGraphQLResolver(nil, nil, "http://localhost:8428")
 	input := map[string]interface{}{
 		"name":  "New Pipeline",
 		"nodes": []interface{}{},
@@ -82,7 +82,7 @@ func TestPipelineResolveCreate(t *testing.T) {
 }
 
 func TestPipelineResolveDelete(t *testing.T) {
-	resolver := NewGraphQLResolver(nil, "http://localhost:8428")
+	resolver := NewGraphQLResolver(nil, nil, "http://localhost:8428")
 
 	createInput := map[string]interface{}{
 		"name":  "Delete Me",
@@ -107,7 +107,7 @@ func TestPipelineResolveDelete(t *testing.T) {
 }
 
 func TestPipelineExecuteQueryPipelines(t *testing.T) {
-	resolver := NewGraphQLResolver(nil, "http://localhost:8428")
+	resolver := NewGraphQLResolver(nil, nil, "http://localhost:8428")
 	result, err := resolver.executeQuery(context.Background(), "query { pipelines { id name } }", nil)
 	if err != nil {
 		t.Fatalf("executeQuery failed: %v", err)
@@ -118,7 +118,7 @@ func TestPipelineExecuteQueryPipelines(t *testing.T) {
 }
 
 func TestPipelineExecuteMutationCreate(t *testing.T) {
-	resolver := NewGraphQLResolver(nil, "http://localhost:8428")
+	resolver := NewGraphQLResolver(nil, nil, "http://localhost:8428")
 	input := map[string]interface{}{
 		"name":  "Mutation Pipeline",
 		"nodes": []interface{}{},

@@ -5,7 +5,7 @@ import (
 )
 
 func TestStoreCreateAndList(t *testing.T) {
-	s := NewStore()
+	s := NewStore(nil)
 	pipelines := s.List()
 	if len(pipelines) != 1 {
 		t.Fatalf("expected 1 seeded pipeline, got %d", len(pipelines))
@@ -34,7 +34,7 @@ func TestStoreCreateAndList(t *testing.T) {
 }
 
 func TestStoreGet(t *testing.T) {
-	s := NewStore()
+	s := NewStore(nil)
 	p, ok := s.Get("default")
 	if !ok {
 		t.Fatal("expected to find default pipeline")
@@ -50,7 +50,7 @@ func TestStoreGet(t *testing.T) {
 }
 
 func TestStoreUpdate(t *testing.T) {
-	s := NewStore()
+	s := NewStore(nil)
 	input := PipelineInput{Name: "Updated Pipeline"}
 	p, ok := s.Update("default", input)
 	if !ok {
@@ -67,7 +67,7 @@ func TestStoreUpdate(t *testing.T) {
 }
 
 func TestStoreDelete(t *testing.T) {
-	s := NewStore()
+	s := NewStore(nil)
 	input := PipelineInput{Name: "Temp"}
 	p := s.Create(input)
 
@@ -88,7 +88,7 @@ func TestStoreDelete(t *testing.T) {
 }
 
 func TestStoreCreateWithNodes(t *testing.T) {
-	s := NewStore()
+	s := NewStore(nil)
 	input := PipelineInput{
 		Name: "Full Pipeline",
 		Nodes: []PipelineNode{

@@ -92,7 +92,7 @@ func TestOptimizerIntegration(t *testing.T) {
 		}
 	}
 
-	resolver := NewGraphQLResolver(db, "http://localhost:8428")
+	resolver := NewGraphQLResolver(db, nil, "http://localhost:8428")
 
 	// 1. Create a Pipeline
 	p := resolver.pipelineStore.Create(pipeline.PipelineInput{

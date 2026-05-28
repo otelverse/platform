@@ -66,7 +66,7 @@ my_custom_metric{label="test"} 43.0
 	time.Sleep(1 * time.Second)
 
 	// Test GraphQL Resolver
-	resolver := NewGraphQLResolver(nil, vmURL)
+	resolver := NewGraphQLResolver(nil, nil, vmURL)
 
 	now := time.Now().Unix()
 	vars := map[string]interface{}{

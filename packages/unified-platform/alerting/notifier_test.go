@@ -6,7 +6,7 @@ import (
 )
 
 func TestNotifierSilence(t *testing.T) {
-	store := NewStore()
+	store := NewStore(nil)
 	notifier := NewNotifier(store)
 
 	rule := AlertRule{
