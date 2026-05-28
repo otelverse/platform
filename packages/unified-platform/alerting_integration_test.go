@@ -31,7 +31,7 @@ func TestAlertingIntegration(t *testing.T) {
 	req := testcontainers.ContainerRequest{
 		Image:        "clickhouse/clickhouse-server:23.8",
 		ExposedPorts: []string{"9000/tcp"},
-		WaitingFor:   wait.ForLog("Ready for connections."),
+		WaitingFor:   wait.ForListeningPort("9000/tcp"),
 	}
 	chContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
@@ -83,7 +83,7 @@ func TestAlertingIntegration(t *testing.T) {
 	eval := alerting.NewEvaluator(store, db, mn)
 	rule := store.CreateRule(alerting.AlertRule{
 		Name:            "High Errors",
-		Query:           "FIND traces WHERE status.code = 2",
+		Query:           "traces | where StatusCode = 2",
 		IntervalSeconds: 60,
 		Condition: map[string]interface{}{
 			"type":      "COUNT_GT",
