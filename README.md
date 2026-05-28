@@ -4,6 +4,7 @@
   <p><em>The ultimate unified observability experience built purely on OpenTelemetry.</em></p>
 
   [![Build Status](https://github.com/otelverse/platform/actions/workflows/ci.yml/badge.svg)](https://github.com/otelverse/platform/actions)
+  [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
   [![Documentation](https://img.shields.io/badge/docs-docusaurus-blue)](https://docs.otelverse.io)
   [![Discord](https://img.shields.io/discord/1234567890?color=7289da&label=Discord&logo=discord&logoColor=white)](https://discord.gg/otelverse)
 </div>
