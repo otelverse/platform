@@ -116,13 +116,16 @@ func main() {
 
 func healthzHandler(db *sql.DB, pgDB *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := db.Ping(); err != nil {
+		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+		defer cancel()
+
+		if err := db.PingContext(ctx); err != nil {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			fmt.Fprintf(w, `{"status":"error", "error":"clickhouse unreachable"}`)
 			return
 		}
 		if pgDB != nil {
-			if err := pgDB.Ping(); err != nil {
+			if err := pgDB.PingContext(ctx); err != nil {
 				w.WriteHeader(http.StatusServiceUnavailable)
 				fmt.Fprintf(w, `{"status":"error", "error":"postgres unreachable"}`)
 				return
