@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.0-rc2] - 2026-05-28
+
+### Added
+- **Community Launch Preparation**: Added launch blog post, demo script, community landing page, Discord setup, Hacker News draft, and social assets.
+
 ## [0.17.0-rc1] - 2026-05-28
 
 ### Added

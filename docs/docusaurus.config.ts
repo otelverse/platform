@@ -73,6 +73,11 @@ const config: Config = {
         },
         {to: '/blog', label: 'Blog', position: 'left'},
         {
+          href: 'https://discord.gg/otelverse',
+          label: 'Discord',
+          position: 'right',
+        },
+        {
           href: 'https://github.com/otelverse/platform',
           label: 'GitHub',
           position: 'right',
