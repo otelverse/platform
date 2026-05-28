@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0] - 2026-05-28
+
+This is the first stable release of the OTelVerse Platform!
+
+### Added
+- **10 Core Products**: Unified Platform, Pipeline Builder, Frontend Wrapper, Pipeline Optimizer, Chaos Engine, Session Replay, Edge Agent, Robotics SDK, Dev Desktop, and Integration Kits.
+- **Alerting & Metrics**: Full-stack alerting engine and dynamic metrics dashboards.
+- **UQL Enhancements**: Advanced OpenTelemetry querying with the Unified Query Language.
+- **E2E Validation**: Comprehensive automated testing for the entire platform.
+- **Hardening**: OAuth2 proxy authentication, PostgreSQL persistence, ClickHouse pooling, and security scanning.
+- **Governance**: Established Apache 2.0 license, CODE_OF_CONDUCT.md, and open-source contribution guidelines.
+
+[1.0.0]: https://github.com/otelverse/platform/compare/v0.18.0-rc3...v1.0.0
+
 ## [0.18.0-rc3] - 2026-05-28
 
 ### Added
