@@ -5,7 +5,7 @@
 
   [![Build Status](https://github.com/otelverse/platform/actions/workflows/ci.yml/badge.svg)](https://github.com/otelverse/platform/actions)
   [![Documentation](https://img.shields.io/badge/docs-docusaurus-blue)](https://docs.otelverse.io)
-  [![Discord](https://img.shields.io/discord/123456789012345678?label=Discord&logo=discord&color=5865F2)](https://discord.gg/otelverse)
+  [![Discord](https://img.shields.io/discord/1234567890?color=7289da&label=Discord&logo=discord&logoColor=white)](https://discord.gg/otelverse)
 </div>
 
 Welcome to the **OTelVerse Platform** monorepo! This repository contains the backend and frontend components that make up the unified platform for managing, visualizing, and optimizing your OpenTelemetry data.
