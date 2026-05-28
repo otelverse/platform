@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.18.0-rc3] - 2026-05-28
+
+### Added
+- **Hardening**: Added OAuth2 proxy authentication to the platform.
+- **Resilience**: Migrated Alerting, Pipelines, and Chaos state to PostgreSQL persistence with in-memory fallback.
+- **Performance**: Added ClickHouse connection pooling and pprof endpoints.
+- **Frontend Optimization**: Added lazy loading and source-map-explorer for web frontend.
+- **Security**: Automated security scanning via GitHub Actions (gosec, cargo-audit, npm audit) and established `SECURITY.md` reporting guidelines.
+- **Error Handling**: Implemented generic React `ErrorBoundary`, GraphQL retry middleware, UQL query exponential backoff, and strict timeout contexts for health checks.
+
 ## [0.17.0-rc2] - 2026-05-28
 
 ### Added
