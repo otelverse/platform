@@ -16,6 +16,25 @@ Welcome to the **OTelVerse Platform** monorepo! This repository contains the bac
 2. Clone the repo: `git clone https://github.com/otelverse/platform.git`
 3. Run all tests: `bazel test //...`
 
+### Running the Full Stack
+You can start the full environment using the Docker Compose kit:
+```bash
+cd packages/integration-kits/compose/otelverse-kit
+make up-all
+```
+
+### Authentication
+By default, the Platform runs without authentication (suitable for local Dev Desktop usage). For production deployments, we support protecting the Platform and APIs behind an OAuth2 reverse proxy.
+
+To enable authentication:
+1. Configure your OAuth provider credentials (e.g. GitHub) in `.env` based on the `.env.example` file.
+2. Generate a secure `OAUTH2_PROXY_COOKIE_SECRET`.
+3. Start the stack with the auth override:
+```bash
+docker compose -f docker-compose.yml -f docker-compose.auth.yml up -d
+```
+All traffic will now be routed through the OAuth2 proxy on port `4180`.
+
 ## Unified Query Language (UQL)
 
 UQL is our custom query language designed specifically for OpenTelemetry data. It supports advanced filtering, cross-signal joins, and aggregations.
