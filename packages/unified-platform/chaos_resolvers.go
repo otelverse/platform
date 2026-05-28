@@ -176,7 +176,7 @@ func (r *GraphQLResolver) resolveChaosBlastRadius(ctx context.Context, vars map[
 			countIf(StatusCode = 2) as errorCount,
 			avg(Duration) as avgDuration
 		FROM otel_traces
-		WHERE JSONExtractString(Attributes, 'chaos.experiment_id') = ?
+		WHERE Attributes['chaos.experiment_id'] = ?
 		GROUP BY ServiceName
 	`
 	rows, err := r.db.QueryContext(ctx, query, expID)

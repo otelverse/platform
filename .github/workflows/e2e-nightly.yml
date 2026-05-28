@@ -1,0 +1,21 @@
+name: Nightly E2E Validation
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Every night at midnight
+  workflow_dispatch:
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run E2E Integration Tests
+        run: |
+          cd packages/integration-kits/compose/otelverse-kit
+          make test-e2e

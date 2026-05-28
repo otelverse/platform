@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	migrate := flag.Bool("migrate", false, "run database migrations")
+
 	otlpAddr := flag.String("otlp-addr", ":4317", "OTLP gRPC receiver address")
 	flag.Parse()
 
@@ -23,11 +23,8 @@ func main() {
 	}
 
 	var db *sql.DB
-	if *migrate {
-		if err := RunMigrations(clickhouseDSN); err != nil {
-			log.Fatalf("migration failed: %v", err)
-		}
-		return
+	if err := RunMigrations(clickhouseDSN); err != nil {
+		log.Printf("migration error (ignoring if already exists): %v", err)
 	}
 
 	var err error
