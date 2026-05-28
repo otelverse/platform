@@ -92,3 +92,58 @@ services:
     depends_on:
       express-app:
         condition: service_started
+
+  session-replay-service:
+    build:
+      context: ../../../../
+      dockerfile: packages/session-replay/service/Dockerfile
+    ports:
+      - "${REPLAY_PORT}:8082"
+    environment:
+      CLICKHOUSE_DSN: "clickhouse://clickhouse:9000?username=default&password="
+      PORT: "8082"
+    networks:
+      - otelverse-network
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+
+  chaos-agent:
+    build:
+      context: ../../../../
+      dockerfile: packages/chaos-engine/agent/Dockerfile
+    ports:
+      - "${CHAOS_PORT}:8083"
+    environment:
+      PLATFORM_URL: "http://platform:8080"
+      PORT: "8083"
+    networks:
+      - otelverse-network
+    depends_on:
+      platform:
+        condition: service_started
+
+  edge-control:
+    build:
+      context: ../../../../
+      dockerfile: packages/edge-agent/control/Dockerfile
+    ports:
+      - "${EDGE_PORT}:8084"
+    environment:
+      CLICKHOUSE_DSN: "clickhouse://clickhouse:9000?username=default&password="
+      PORT: "8084"
+    networks:
+      - otelverse-network
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+
+  robotics-sim:
+    build:
+      context: ../../../../
+      dockerfile: packages/robotics-sdk/docker/simulation-env/Dockerfile
+    networks:
+      - otelverse-network
+    depends_on:
+      otel-collector:
+        condition: service_started
