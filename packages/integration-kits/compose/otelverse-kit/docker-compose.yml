@@ -93,6 +93,22 @@ services:
       express-app:
         condition: service_started
 
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: replay
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: replays
+    ports:
+      - "5432:5432"
+    networks:
+      - otelverse-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U replay"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   session-replay-service:
     build:
       context: ../../../../
@@ -100,12 +116,12 @@ services:
     ports:
       - "${REPLAY_PORT}:8082"
     environment:
-      CLICKHOUSE_DSN: "clickhouse://clickhouse:9000?username=default&password="
+      POSTGRES_DSN: "postgres://replay:password@postgres:5432/replays?sslmode=disable"
       PORT: "8082"
     networks:
       - otelverse-network
     depends_on:
-      clickhouse:
+      postgres:
         condition: service_healthy
 
   chaos-agent:
