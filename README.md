@@ -3,6 +3,10 @@
   <h1>OTelVerse Platform</h1>
   <p><em>The ultimate unified observability experience built purely on OpenTelemetry.</em></p>
 
+  **🚀 Stable Release v1.0.0 is now live!**
+  <br/><br/>
+
+  [![Version](https://img.shields.io/badge/version-1.0.0-success.svg)](CHANGELOG.md)
   [![Build Status](https://github.com/otelverse/platform/actions/workflows/ci.yml/badge.svg)](https://github.com/otelverse/platform/actions)
   [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
   [![Documentation](https://img.shields.io/badge/docs-docusaurus-blue)](https://docs.otelverse.io)
