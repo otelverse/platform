@@ -13,6 +13,8 @@ Welcome to the **OTelVerse Platform** monorepo! This repository contains the bac
 
 ## Getting Started
 
+Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
+
 1. Install [Bazelisk](https://github.com/bazelbuild/bazelisk) (manages Bazel version automatically)
 2. Clone the repo: `git clone https://github.com/otelverse/platform.git`
 3. Run all tests: `bazel test //...`
