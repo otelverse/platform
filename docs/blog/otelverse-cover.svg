@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+  <rect width="800" height="400" fill="#0b132b"/>
+  <text x="400" y="200" font-family="sans-serif" font-size="48" font-weight="bold" fill="#ffffff" text-anchor="middle">OTelVerse</text>
+  <text x="400" y="250" font-family="sans-serif" font-size="24" fill="#6fffe9" text-anchor="middle">The Complete OpenTelemetry Ecosystem</text>
+</svg>
