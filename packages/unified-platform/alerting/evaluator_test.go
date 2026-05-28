@@ -25,7 +25,7 @@ func (m *mockNotifier) SendNotification(channel NotificationChannel, rule AlertR
 }
 
 func TestEvaluator(t *testing.T) {
-	store := NewStore()
+	store := NewStore(nil)
 	executor := &mockExecutor{count: 10, err: nil}
 	notifier := &mockNotifier{sent: 0}
 
@@ -109,7 +109,7 @@ func TestEvaluator(t *testing.T) {
 }
 
 func TestEvaluatorInterval(t *testing.T) {
-	store := NewStore()
+	store := NewStore(nil)
 	executor := &mockExecutor{count: 10, err: nil}
 	notifier := &mockNotifier{sent: 0}
 

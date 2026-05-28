@@ -40,7 +40,7 @@ func TestResolveMetrics(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	resolver := NewGraphQLResolver(nil, ts.URL)
+	resolver := NewGraphQLResolver(nil, nil, ts.URL)
 	vars := map[string]interface{}{
 		"query":     "up",
 		"startTime": "1716768000",
@@ -90,7 +90,7 @@ func TestResolveMetrics(t *testing.T) {
 }
 
 func TestResolveMetrics_MissingConfig(t *testing.T) {
-	resolver := NewGraphQLResolver(nil, "")
+	resolver := NewGraphQLResolver(nil, nil, "")
 	_, err := resolver.resolveMetrics(context.Background(), nil)
 	if err == nil {
 		t.Fatal("Expected error for missing URL")
@@ -109,7 +109,7 @@ func TestResolveMetrics_VMError(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	resolver := NewGraphQLResolver(nil, ts.URL)
+	resolver := NewGraphQLResolver(nil, nil, ts.URL)
 	vars := map[string]interface{}{
 		"query":     "invalid",
 		"startTime": "1716768000",

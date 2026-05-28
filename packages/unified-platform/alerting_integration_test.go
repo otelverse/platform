@@ -46,15 +46,24 @@ func TestAlertingIntegration(t *testing.T) {
 	port, _ := chContainer.MappedPort(ctx, "9000")
 	dsn := fmt.Sprintf("clickhouse://%s:%s?username=default&password=", host, port.Port())
 
-	db, err := sql.Open("clickhouse", dsn)
+	var db *sql.DB
+	for i := 0; i < 30; i++ {
+		db, err = sql.Open("clickhouse", dsn)
+		if err == nil {
+			err = db.Ping()
+			if err == nil {
+				err = RunMigrations(dsn)
+				if err == nil {
+					break
+				}
+			}
+		}
+		time.Sleep(1 * time.Second)
+	}
 	if err != nil {
-		t.Fatalf("failed to connect to db: %v", err)
+		t.Fatalf("failed to connect and migrate db after retries: %v", err)
 	}
 	defer db.Close()
-
-	if err := RunMigrations(dsn); err != nil {
-		t.Fatalf("failed to run migrations: %v", err)
-	}
 
 	// Insert dummy data
 	_, err = db.ExecContext(ctx, `
@@ -71,7 +80,7 @@ func TestAlertingIntegration(t *testing.T) {
 	// Wait for clickhouse to ingest
 	time.Sleep(2 * time.Second)
 
-	resolver := NewGraphQLResolver(db, "http://localhost:8428")
+	resolver := NewGraphQLResolver(db, nil, "http://localhost:8428")
 	store := resolver.alertStore
 
 	// Add test notifier logic by making a custom struct that records

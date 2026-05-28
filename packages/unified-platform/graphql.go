@@ -50,12 +50,12 @@ type GraphQLResponse struct {
 	Errors []string    `json:"errors,omitempty"`
 }
 
-func NewGraphQLResolver(db *sql.DB, vmURL string) *GraphQLResolver {
+func NewGraphQLResolver(db *sql.DB, pgDB *sql.DB, vmURL string) *GraphQLResolver {
 	return &GraphQLResolver{
 		db:                 db,
-		pipelineStore:      pipeline.NewStore(),
-		chaosStore:         NewChaosStore(),
-		alertStore:         alerting.NewStore(),
+		pipelineStore:      pipeline.NewStore(pgDB),
+		chaosStore:         NewChaosStore(pgDB),
+		alertStore:         alerting.NewStore(pgDB),
 		victoriaMetricsURL: vmURL,
 	}
 }

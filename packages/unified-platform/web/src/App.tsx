@@ -1,9 +1,9 @@
 import { Suspense, lazy } from 'react'
 import { Routes, Route, Navigate, Link } from 'react-router-dom'
-import { Layout } from '@otelverse/ui-kit'
-import TraceListPage from './pages/TraceListPage'
-import TraceDetailPage from './pages/TraceDetailPage'
-import { EdgeAgentListPage } from './pages/Edge/EdgeAgentListPage'
+import { Layout, ErrorBoundary } from '@otelverse/ui-kit'
+const TraceListPage = lazy(() => import('./pages/TraceListPage'))
+const TraceDetailPage = lazy(() => import('./pages/TraceDetailPage'))
+const EdgeAgentListPage = lazy(() => import('./pages/Edge/EdgeAgentListPage').then(m => ({ default: m.EdgeAgentListPage })))
 
 const PipelineBuilderPage = lazy(() => import('./pages/PipelineBuilder/PipelineBuilderPage'))
 const SessionReplayPage = lazy(() => import('./pages/SessionReplayPage').then(m => ({ default: m.SessionReplayPage })))
@@ -60,10 +60,12 @@ function SidebarNav() {
   )
 }
 
+// App component definition
 export default function App() {
   return (
     <Layout sidebar={<SidebarNav />}>
-      <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading module...</div>}>
+      <ErrorBoundary>
+        <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading module...</div>}>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
@@ -84,6 +86,7 @@ export default function App() {
           <Route path="/robotics" element={<RoboticsDashboardPage />} />
         </Routes>
       </Suspense>
+      </ErrorBoundary>
     </Layout>
   )
 }
